@@ -5,9 +5,10 @@
 // @include      http://moly.hu/*
 // @include      http://www.moly.hu/*
 // @grant        GM_addStyle
-// @version      5.2
+// @version      5.3
 // @updateURL    https://github.com/petamas/Lepke/raw/master/Lepke.user.js
 // @downloadURL  https://github.com/petamas/Lepke/raw/master/Lepke.user.js
+// @run-at       document-start
 // ==/UserScript==
 
 // Készítette: Peregi Tamás (@petamas)
