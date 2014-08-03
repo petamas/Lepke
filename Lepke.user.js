@@ -17,7 +17,7 @@
 // Segédfüggvények
 //=============================================================================
 
-var lepke__icon = 'https://github.com/petamas/Lepke/raw/master/images/Lepke_kicsi.png';
+var lepke__icon = 'https://raw.githubusercontent.com/petamas/Lepke/master/images/Lepke_kicsi.png';
 var lepke__modules = {logger: true, regebbi_peldany: true, hozzaszolasok: true, kihivas_kukac: true, esemeny_kukac: true, spoileropen: false};
  
 function new_xmlhttp() {
