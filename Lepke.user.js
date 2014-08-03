@@ -5,9 +5,9 @@
 // @include      http://moly.hu/*
 // @include      http://www.moly.hu/*
 // @grant        GM_addStyle
-// @version      5.0
-// @updateURL    https://www.dropbox.com/sh/uu3xcxoyuw8us3a/AABKQlh_uZazc3HepAyQiI57a/Lepke.user.js?dl=1
-// @downloadURL  https://www.dropbox.com/sh/uu3xcxoyuw8us3a/AABKQlh_uZazc3HepAyQiI57a/Lepke.user.js?dl=1
+// @version      5.2
+// @updateURL    https://github.com/petamas/Lepke/raw/master/Lepke.user.js
+// @downloadURL  https://github.com/petamas/Lepke/raw/master/Lepke.user.js
 // ==/UserScript==
 
 // Készítette: Peregi Tamás (@petamas)
@@ -267,6 +267,7 @@ function store__update() {
 			logger__log_ex(mod,count);
 			MY_deleteValue(mod);
 		}
+		store__set_old_from_new('first_install', lepke__modules[mod]);
 		MY_setValue('store_version',currentlevel);
 	}
 }
