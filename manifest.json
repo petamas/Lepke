@@ -1,0 +1,13 @@
+{
+  "manifest_version": 2,
+  "content_scripts": [ {
+    "include_globs": [ "http://moly.hu/*", "http://www.moly.hu/*" ],
+    "js": [ "Lepke.user.js" ],
+    "matches": [ "http://*/*", "https://*/*" ],
+    "run_at": "document_start"
+  } ],
+  "converted_from_user_script": true,
+  "description": "Kiegészítők a Moly.hu oldalhoz",
+  "name": "Lepke",
+  "version": "5.0"
+}
