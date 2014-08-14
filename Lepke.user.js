@@ -5,10 +5,12 @@
 // @include      http://moly.hu/*
 // @include      http://www.moly.hu/*
 // @grant        GM_addStyle
-// @version      6.0
+// @grant        GM_xmlhttpRequest
+// @version      6.1
 // @updateURL    https://github.com/petamas/Lepke/raw/master/Lepke.user.js
 // @downloadURL  https://github.com/petamas/Lepke/raw/master/Lepke.user.js
 // @run-at       document-start
+// @icon         https://github.com/petamas/Lepke/raw/master/images/Lepke64.png
 // ==/UserScript==
 
 // Készítette: Peregi Tamás (@petamas)
@@ -18,9 +20,21 @@
 // Segédfüggvények
 //=============================================================================
 
-var lepke__icon = 'https://raw.githubusercontent.com/petamas/Lepke/master/images/Lepke_kicsi.png';
+//var lepke__icon = 'https://raw.githubusercontent.com/petamas/Lepke/master/images/Lepke_kicsi.png';
+var lepke__icon = 'https://github.com/petamas/Lepke/raw/master/images/Lepke64.png';
+var lepke__manifestURL = 'https://github.com/petamas/Lepke/raw/master/manifest.json';
+var lepke__downloadURL = 'https://github.com/petamas/Lepke/raw/master/Lepke.user.js';
+var lepke__downloadPageURL = 'https://github.com/petamas/Lepke/';
 var lepke__modules = {logger: true, regebbi_peldany: true, hozzaszolasok: true, kihivas_kukac: true, esemeny_kukac: true, spoileropen: false};
- 
+
+function alert_real(text) {
+	window.alert(text);
+}
+
+function alert_debug(text) {
+	window.alert(text);
+}
+
 function new_xmlhttp() {
 	if (window.XMLHttpRequest) {
 		//code for IE7+, Firefox, Chrome, Opera, Safari
@@ -69,6 +83,42 @@ function lepke__createMenuItem(title,link,handler) {
 	return li;
 }
 
+function is_GM() {
+	return typeof GM_info !== 'undefined';
+}
+
+function is_chrome() {
+	return typeof chrome !== 'undefined';
+}
+
+
+function lepke__version() {
+	if(is_GM()) {
+		return GM_info.script.version;
+	} else if(is_chrome()) {
+		return chrome.runtime.getManifest().version;
+	} else {
+		return '??';
+	}
+}
+
+
+function lepke__edition() {
+	if(is_GM()) {
+		if(typeof chrome !== 'undefined') {
+			return 'TM';
+		} else {
+			return 'GM';
+		}
+	} else if(is_chrome()) {
+		return 'GC';
+	} else {
+		return '??';
+	}
+}
+
+
+
 //=============================================================================
 // GM_*
 //=============================================================================
@@ -76,20 +126,25 @@ function lepke__createMenuItem(title,link,handler) {
 var lepke__keyPrefix = 'lepke__';
 
 function MY_getValue(key,def) {
-	var value = localStorage[key];
+	//alert('MY_getValue('+key+','+def+')');
+	var value = localStorage.getItem(key);
 	if(value!=null) {
-		delete localStorage[key];
+		localStorage.removeItem(key);
 		MY_setValue('old__'+key,value);
 	}
-	return localStorage[lepke__keyPrefix+key] || def;
+	value = localStorage.getItem(lepke__keyPrefix+key);
+	var ret = value!=null ? value : def;
+	//alert('return '+value+'->'+ret);
+	return (ret);
 };
 
 function MY_setValue(key,value) {
-	return localStorage[lepke__keyPrefix+key]=value;
+	//alert('MY_setValue('+key+','+value+')');
+	localStorage.setItem(lepke__keyPrefix+key, value);
 };
 
 function MY_deleteValue(key) {
-	return delete localStorage[lepke__keyPrefix+key];
+	localStorage.removeItem(lepke__keyPrefix+key);
 };
 
 function MY_listValues() {
@@ -104,6 +159,62 @@ function MY_listValues() {
 	return list;
 };
 
+function MY_xmlhttpRequest(details) {
+	var allowed_keys = ["onreadystatechange", "method", "url", "synchronous"];
+	for(var key in details) {
+		if(allowed_keys.indexOf(key)==-1) {
+			alert_real("Unsupported XHR key: "+key);
+			return;
+		}
+	}
+	if(is_GM()) {
+		GM_xmlhttpRequest(details);
+	} else {
+		var xmlhttp = new_xmlhttp();
+		xmlhttp.onreadystatechange=function() {details.onreadystatechange(xmlhttp);};
+		xmlhttp.open(details.method,details.url,!details.synchronous);
+		xmlhttp.send();
+	}
+}
+
+//=============================================================================
+// Store frissítése
+//=============================================================================
+
+function store__add_old_to_new(key) {
+	var oldkey  = 'old__'+key;
+	var current = parseInt(MY_getValue(key,0));
+	var old     = parseInt(MY_getValue(oldkey,0));
+	MY_setValue(key,current+old);
+	MY_deleteValue(oldkey);
+}
+
+function store__set_old_from_new(key,def) {
+	var oldkey  = 'old__'+key;
+	var current = MY_getValue(key,def);
+	var old     = MY_getValue(oldkey,current);
+	MY_setValue(key,old);
+	MY_deleteValue(oldkey);
+}
+
+function store__update() {
+	var currentlevel = 1;
+	if(MY_getValue('store_version',0)<currentlevel) {
+		for(var mod in lepke__modules) {
+			// update from old Chrome Version
+			store__set_old_from_new('enable_'+mod, lepke__modules[mod]?1:0);
+			store__add_old_to_new(mod);
+			store__add_old_to_new('count_'+mod);
+			// update from old logger
+			var count = MY_getValue(mod,0);
+			logger__log_ex(mod,count);
+			MY_deleteValue(mod);
+		}
+		store__set_old_from_new('first_install', lepke__modules[mod]?1:0);
+		MY_setValue('store_version',currentlevel);
+	}
+}
+
 //=============================================================================
 // Beállítások
 //=============================================================================
@@ -112,7 +223,9 @@ function settings__load() {
 	for(var mod in lepke__modules) {
 		var key = 'enable_'+mod;
 		var def = lepke__modules[mod] ? 1 : 0;
-		var val = parseInt(MY_getValue(key,def))
+		var raw = MY_getValue(key,def);
+		var val = parseInt(raw);
+		//alert(key +'=' + raw + ' ('+def+')');
 		lepke__modules[mod] = val==1 ? true : false;
 	}
 }
@@ -165,8 +278,9 @@ function settings__open() {
 	modal.innerHTML = '<div class="modal-content"><div class="modal-close"><a href="#"><img src="/modal/closelabel.png" alt=""></a></div><div class="pjax" id="pjax"></div>	</div>';
 	modal.style.top = '55px';
 	
+	var version = 'v'+lepke__version()+' ('+lepke__edition()+')';
 	var x = '';
-	x += '<h1>Lepke beállítások</h1>';
+	x += '<h1>Lepke beállítások &ndash; '+version+'</h1>';
 	x += '<form><table>';
 	x += settings__line('logger','Használati statisztika készítése','Ha be van kapcsolva, a Lepke számolja, hogy melyik funkcióját mennyit használod. Egy későbbi verzió ezt az adatot _anonim módon_ eljuttatja majd hozzám. (Jelenleg csak a te gépeden tárolódnak a számok.) Ezekből az adatokból látom, hogy melyik funkciót érdemes fejleszteni/karbantartani. Kérlek, engedélyezd a statisztika készítését!');
 	x += settings__line('regebbi_peldany','_Régebbi példány_ gomb hozzáadása a könyvadatlapokhoz','Működése megegyezik a _Hozzáadás_ menü _Korábbi saját példány_ menüpontjának működésével, de nem kérdez rá, hogy melyik évben szerezted meg. Az így felvett könyvek nem jelennek meg a figyelőid frissében.');
@@ -198,6 +312,56 @@ function settings__setup() {
 }
 
 //=============================================================================
+// Frissítés
+//=============================================================================
+
+function update__newer(v1,v2) {
+	var v1parts = v1.split('.');
+	var v2parts = v2.split('.');
+	while (v1parts.length < v2parts.length) v1parts.push("0");
+	while (v2parts.length < v1parts.length) v2parts.push("0");
+	v1parts = v1parts.map(Number);
+	v2parts = v2parts.map(Number);
+	for(var i = 0; i<v1parts.length; i++)
+		if(v1parts[i]!=v2parts[i])
+			return v1parts[i]>v2parts[i];
+	return false;
+}
+
+function update__look(alert_if_nothing) {
+	MY_xmlhttpRequest({
+		method: "GET",
+		url: lepke__manifestURL,
+		synchronous: false,
+		onreadystatechange: function(response) {
+			if (response.readyState==4 && response.status==200){
+				var manifest = JSON.parse(response.responseText);
+				MY_setValue('last_update_check',new Date().toString());
+				if(update__newer(manifest.version,lepke__version())) {
+					var r = window.confirm('Új Lepke verzió érhető el. Szeretnéd a jelenlegi '+lepke__version()+' verziót '+manifest.version+' verzióra frissíteni?');
+					if(r) {
+						location.href = is_GM() ? lepke__downloadURL : lepke__downloadPageURL;
+					}
+				} else if(manifest.version==lepke__version()){
+					if(alert_if_nothing) alert_real('A legfrissebb verziót használod.');
+				} else {
+					alert_real('Frissebb a verziód, mint a hivatalos.');
+				}
+			}
+		}
+	});
+}
+
+function update__setup() {
+	lepke__get_menu().appendChild(lepke__createMenuItem('Új verzió keresése', '#', function(){update__look(true);}));
+	
+	var last_update_check = MY_getValue('last_update_check','');
+	if(last_update_check == '' || new Date(last_update_check).toDateString() != new Date().toDateString()) {
+		update__look(false);
+	}
+}
+
+//=============================================================================
 // Modul: logger
 //=============================================================================
 
@@ -222,7 +386,7 @@ function logger__show() {
 	for(var i =0; i<keys.length; i++) {
 		data[keys[i]] = MY_getValue(keys[i]);
 	}
-	window.alert(JSON.stringify(data,null,'  '));
+	alert_real(JSON.stringify(data,null,'  '));
 }
 
 function logger__setup() {
@@ -233,44 +397,6 @@ function logger__setup() {
 	
 	var show = lepke__createMenuItem('Tárolt adatok', '#', logger__show);
 	lepke__get_menu().appendChild(show);
-}
-
-//=============================================================================
-// Store frissítése
-//=============================================================================
-
-function store__add_old_to_new(key) {
-	var oldkey  = 'old__'+key;
-	var current = parseInt(MY_getValue(key,0));
-	var old     = parseInt(MY_getValue(oldkey,0));
-	MY_setValue(key,current+old);
-	MY_deleteValue(oldkey);
-}
-
-function store__set_old_from_new(key,def) {
-	var oldkey  = 'old__'+key;
-	var current = MY_getValue(key,def);
-	var old     = MY_getValue(oldkey,current);
-	MY_setValue(key,old);
-	MY_deleteValue(oldkey);
-}
-
-function store__update() {
-	var currentlevel = 1;
-	if(MY_getValue('store_version',0)<currentlevel) {
-		for(var mod in lepke__modules) {
-			// update from old Chrome Version
-			store__set_old_from_new('enable_'+mod, lepke__modules[mod]);
-			store__add_old_to_new(mod);
-			store__add_old_to_new('count_'+mod);
-			// update from old logger
-			var count = MY_getValue(mod,0);
-			logger__log_ex(mod,count);
-			MY_deleteValue(mod);
-		}
-		store__set_old_from_new('first_install', lepke__modules[mod]);
-		MY_setValue('store_version',currentlevel);
-	}
 }
 
 //=============================================================================
@@ -425,7 +551,8 @@ function main() {
 
 	store__update();
 	settings__setup();
-	 
+	update__setup();
+	
 	if(lepke__modules.logger)
 		logger__setup();
 
