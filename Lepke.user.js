@@ -7,7 +7,7 @@
 // @include      http://www.moly.hu/*
 // @grant        GM_addStyle
 // @grant        GM_xmlhttpRequest
-// @version      7.3
+// @version      7.4
 // @updateURL    https://github.com/petamas/Lepke/raw/master/Lepke.user.js
 // @downloadURL  https://github.com/petamas/Lepke/raw/master/Lepke.user.js
 // @run-at       document-start
@@ -391,18 +391,20 @@ function settings__open() { //mod_settings.js:56
 
 function settings__setup() { //mod_settings.js:83
 	settings__load(); //mod_settings.js:84
-	var settings = lepke__createMenuItem('Beállítások', '#', settings__open, 'lepke_marker_settings'); //mod_settings.js:85
-	lepke__get_menu().appendChild(settings); //mod_settings.js:86
-} //mod_settings.js:87
+	if (lepke__check_marker('.lepke_marker_settings', 'Settings menu item is already added')) //mod_settings.js:85
+		return; //mod_settings.js:86
+	var settings = lepke__createMenuItem('Beállítások', '#', settings__open, 'lepke_marker_settings'); //mod_settings.js:87
+	lepke__get_menu().appendChild(settings); //mod_settings.js:88
+} //mod_settings.js:89
 
-register_module(new function() { //mod_settings.js:90
-	this.name = 'settings'; //mod_settings.js:91
-	this.optional = false; //mod_settings.js:92
-	this.enabled = true; //mod_settings.js:93
-	this.short_description = 'Beállítások'; //mod_settings.js:94
-	this.long_description = ''; //mod_settings.js:95
-	this.setup = settings__setup; //mod_settings.js:96
-}); //mod_settings.js:97
+register_module(new function() { //mod_settings.js:92
+	this.name = 'settings'; //mod_settings.js:93
+	this.optional = false; //mod_settings.js:94
+	this.enabled = true; //mod_settings.js:95
+	this.short_description = 'Beállítások'; //mod_settings.js:96
+	this.long_description = ''; //mod_settings.js:97
+	this.setup = settings__setup; //mod_settings.js:98
+}); //mod_settings.js:99
 //=============================================================================
 // Modul: update
 //=============================================================================
@@ -458,22 +460,26 @@ function update__look(alert_if_nothing) { //mod_update.js:23
 } //mod_update.js:53
 
 function update__setup() { //mod_update.js:55
-	lepke__get_menu().appendChild(lepke__createMenuItem('Új verzió keresése', '#', prevent(function(){update__look(true);}), 'lepke_marker_update')); //mod_update.js:56
+	var last_update_check = MY_getValue('last_update_check',''); //mod_update.js:56
+	if(!update__today(last_update_check)) { //mod_update.js:57
+		update__look(false); //mod_update.js:58
+	} //mod_update.js:59
 
-	var last_update_check = MY_getValue('last_update_check',''); //mod_update.js:58
-	if(!update__today(last_update_check)) { //mod_update.js:59
-		update__look(false); //mod_update.js:60
-	} //mod_update.js:61
-} //mod_update.js:62
+	if (lepke__check_marker('.lepke_marker_update', 'Update menu item is already added')) //mod_update.js:61
+		return; //mod_update.js:62
+	lepke__get_menu().appendChild( //mod_update.js:63
+		lepke__createMenuItem('Új verzió keresése', '#', prevent(function(){update__look(true);}), 'lepke_marker_update') //mod_update.js:64
+	); //mod_update.js:65
+} //mod_update.js:66
 
-register_module(new function() { //mod_update.js:64
-	this.name = 'update'; //mod_update.js:65
-	this.optional = false; //mod_update.js:66
-	this.enabled = true; //mod_update.js:67
-	this.short_description ='Lepke frissítése'; //mod_update.js:68
-	this.long_description = ''; //mod_update.js:69
-	this.setup = update__setup; //mod_update.js:70
-}); //mod_update.js:71
+register_module(new function() { //mod_update.js:68
+	this.name = 'update'; //mod_update.js:69
+	this.optional = false; //mod_update.js:70
+	this.enabled = true; //mod_update.js:71
+	this.short_description ='Lepke frissítése'; //mod_update.js:72
+	this.long_description = ''; //mod_update.js:73
+	this.setup = update__setup; //mod_update.js:74
+}); //mod_update.js:75
 //=============================================================================
 // Modul: logger
 //=============================================================================
@@ -507,18 +513,20 @@ function logger__setup() { //mod_logger.js:28
 		MY_setValue('first_install',new Date().toString()); //mod_logger.js:31
 	} //mod_logger.js:32
 
-	var show = lepke__createMenuItem('Tárolt adatok', '#', prevent(logger__show), 'lepke_marker_logger'); //mod_logger.js:34
-	lepke__get_menu().appendChild(show); //mod_logger.js:35
-} //mod_logger.js:36
+	if (lepke__check_marker('.lepke_marker_logger', '"Logged data" menu item is already added')) //mod_logger.js:34
+		return; //mod_logger.js:35
+	var show = lepke__createMenuItem('Tárolt adatok', '#', prevent(logger__show), 'lepke_marker_logger'); //mod_logger.js:36
+	lepke__get_menu().appendChild(show); //mod_logger.js:37
+} //mod_logger.js:38
 
-register_module(new function() { //mod_logger.js:38
-	this.name = 'logger'; //mod_logger.js:39
-	this.optional = true; //mod_logger.js:40
-	this.enabled = true; //mod_logger.js:41
-	this.short_description = 'Használati statisztika készítése'; //mod_logger.js:42
-	this.long_description = 'Ha be van kapcsolva, a Lepke számolja, hogy melyik funkcióját mennyit használod. Egy későbbi verzió ezt az adatot _anonim módon_ eljuttatja majd hozzám. (Jelenleg csak a te gépeden tárolódnak a számok.) Ezekből az adatokból látom, hogy melyik funkciót érdemes fejleszteni/karbantartani. Kérlek, engedélyezd a statisztika készítését!'; //mod_logger.js:43
-	this.setup = logger__setup; //mod_logger.js:44
-}); //mod_logger.js:45
+register_module(new function() { //mod_logger.js:40
+	this.name = 'logger'; //mod_logger.js:41
+	this.optional = true; //mod_logger.js:42
+	this.enabled = true; //mod_logger.js:43
+	this.short_description = 'Használati statisztika készítése'; //mod_logger.js:44
+	this.long_description = 'Ha be van kapcsolva, a Lepke számolja, hogy melyik funkcióját mennyit használod. Egy későbbi verzió ezt az adatot _anonim módon_ eljuttatja majd hozzám. (Jelenleg csak a te gépeden tárolódnak a számok.) Ezekből az adatokból látom, hogy melyik funkciót érdemes fejleszteni/karbantartani. Kérlek, engedélyezd a statisztika készítését!'; //mod_logger.js:45
+	this.setup = logger__setup; //mod_logger.js:46
+}); //mod_logger.js:47
 
 //=============================================================================
 // Modul: regebbi_peldany
