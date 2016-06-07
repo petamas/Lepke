@@ -7,7 +7,7 @@
 // @include      http://www.moly.hu/*
 // @grant        GM_addStyle
 // @grant        GM_xmlhttpRequest
-// @version      7.4
+// @version      7.5
 // @updateURL    https://github.com/petamas/Lepke/raw/master/Lepke.user.js
 // @downloadURL  https://github.com/petamas/Lepke/raw/master/Lepke.user.js
 // @run-at       document-start
@@ -806,7 +806,7 @@ function link_adder__setup(marker_name,baselink,link_text,addsub,blank,encode) {
 
 		var div = document.createElement('div'); //mod_rukkola.js:49
 		div.innerHTML = '<div class="right"><a href="'+link+'" class="button cart_button" '+(blank?'target="_blank"':'')+'>Rákeresek</a></div><strong>'+link_text+'</strong>'; //mod_rukkola.js:50
-		div.className = 'shop_item lepke_marker .lepke_marker_links_'+marker_name; //mod_rukkola.js:51
+		div.className = 'shop_item lepke_marker lepke_marker_links_'+marker_name; //mod_rukkola.js:51
 		div.querySelector('a').addEventListener("click",function(){logger__log('rukkola');},false); //mod_rukkola.js:52
 
 		var shopbox = document.querySelector("#main .shopbox"); //mod_rukkola.js:54
