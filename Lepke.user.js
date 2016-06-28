@@ -9,7 +9,7 @@
 // @include      https://www.moly.hu/*
 // @grant        GM_addStyle
 // @grant        GM_xmlhttpRequest
-// @version      7.6
+// @version      7.7
 // @updateURL    https://github.com/petamas/Lepke/raw/master/Lepke.user.js
 // @downloadURL  https://github.com/petamas/Lepke/raw/master/Lepke.user.js
 // @run-at       document-start
@@ -432,7 +432,7 @@ function update__today(last_update_check) //mod_update.js:18
 function update__look(alert_if_nothing) { //mod_update.js:23
 	MY_xmlhttpRequest({ //mod_update.js:24
 		method: "GET", //mod_update.js:25
-		url: lepke__manifestURL, //mod_update.js:26
+		url: lepke__manifestURL+"?datetime="+new Date().toString(), //mod_update.js:26
 		synchronous: false, //mod_update.js:27
 		onreadystatechange: function(response) { //mod_update.js:28
 			if (response.readyState==4 && response.status==200){ //mod_update.js:29
