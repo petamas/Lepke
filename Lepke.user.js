@@ -5,9 +5,11 @@
 // @author       Peregi Tamás (@petamas)
 // @include      http://moly.hu/*
 // @include      http://www.moly.hu/*
+// @include      https://moly.hu/*
+// @include      https://www.moly.hu/*
 // @grant        GM_addStyle
 // @grant        GM_xmlhttpRequest
-// @version      7.5
+// @version      7.6
 // @updateURL    https://github.com/petamas/Lepke/raw/master/Lepke.user.js
 // @downloadURL  https://github.com/petamas/Lepke/raw/master/Lepke.user.js
 // @run-at       document-start
@@ -25,13 +27,13 @@
 // Segédfüggvények
 //=============================================================================
 
-var lepke__modules_id = []; //Lepke.main.js:45
-var lepke__modules_name = {}; //Lepke.main.js:46
+var lepke__modules_id = []; //Lepke.main.js:47
+var lepke__modules_name = {}; //Lepke.main.js:48
 
-function register_module(mod) { //Lepke.main.js:48
-	lepke__modules_id[lepke__modules_id.length] = mod; //Lepke.main.js:49
-	lepke__modules_name[mod.name] = mod; //Lepke.main.js:50
-} //Lepke.main.js:51
+function register_module(mod) { //Lepke.main.js:50
+	lepke__modules_id[lepke__modules_id.length] = mod; //Lepke.main.js:51
+	lepke__modules_name[mod.name] = mod; //Lepke.main.js:52
+} //Lepke.main.js:53
 
 //Fontos a sorrend
 function alert_real(text) { //common.js:1
@@ -894,31 +896,31 @@ register_module(new function() { //mod_suti.js:27
 // Egyebek
 //=============================================================================
 
-function main() { //Lepke.main.js:85
-	if(lepke__get_user()=='') //Lepke.main.js:86
-	{ //Lepke.main.js:87
-		console.log('User menu cannot be found, exiting...'); //Lepke.main.js:88
-		return; //Lepke.main.js:89
-	} //Lepke.main.js:90
+function main() { //Lepke.main.js:87
+	if(lepke__get_user()=='') //Lepke.main.js:88
+	{ //Lepke.main.js:89
+		console.log('User menu cannot be found, exiting...'); //Lepke.main.js:90
+		return; //Lepke.main.js:91
+	} //Lepke.main.js:92
 
-	console.log('Start setup of '+lepke__modules_id.length+' modules'); //Lepke.main.js:92
-	for(var id = 0; id<lepke__modules_id.length; id++) { //Lepke.main.js:93
-		var mod = lepke__modules_id[id]; //Lepke.main.js:94
-		console.log('Setup module '+mod.name); //Lepke.main.js:95
-		if(!mod.optional || mod.enabled) //Lepke.main.js:96
-		{ //Lepke.main.js:97
-			mod.setup(); //Lepke.main.js:98
-		} else { //Lepke.main.js:99
-			console.log('> Disabled'); //Lepke.main.js:100
-		} //Lepke.main.js:101
-	} //Lepke.main.js:102
-} //Lepke.main.js:103
+	console.log('Start setup of '+lepke__modules_id.length+' modules'); //Lepke.main.js:94
+	for(var id = 0; id<lepke__modules_id.length; id++) { //Lepke.main.js:95
+		var mod = lepke__modules_id[id]; //Lepke.main.js:96
+		console.log('Setup module '+mod.name); //Lepke.main.js:97
+		if(!mod.optional || mod.enabled) //Lepke.main.js:98
+		{ //Lepke.main.js:99
+			mod.setup(); //Lepke.main.js:100
+		} else { //Lepke.main.js:101
+			console.log('> Disabled'); //Lepke.main.js:102
+		} //Lepke.main.js:103
+	} //Lepke.main.js:104
+} //Lepke.main.js:105
 
-if(typeof WScript !== 'undefined') { //Lepke.main.js:105
-	WScript.Echo('Ne kozvetlenul inditsd el a fajlt, hanem kovesd a telepitesi utmutatot!'); //Lepke.main.js:106
-} else { //Lepke.main.js:107
-	console.log('Adding listener to DOMContentLoaded...'); //Lepke.main.js:108
-	window.addEventListener('DOMContentLoaded', main); //Lepke.main.js:109
-} //Lepke.main.js:110
+if(typeof WScript !== 'undefined') { //Lepke.main.js:107
+	WScript.Echo('Ne kozvetlenul inditsd el a fajlt, hanem kovesd a telepitesi utmutatot!'); //Lepke.main.js:108
+} else { //Lepke.main.js:109
+	console.log('Adding listener to DOMContentLoaded...'); //Lepke.main.js:110
+	window.addEventListener('DOMContentLoaded', main); //Lepke.main.js:111
+} //Lepke.main.js:112
 
 // VÉGE
