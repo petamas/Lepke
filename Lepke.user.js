@@ -9,7 +9,7 @@
 // @include      https://www.moly.hu/*
 // @grant        GM_addStyle
 // @grant        GM_xmlhttpRequest
-// @version      7.7
+// @version      7.8
 // @updateURL    https://github.com/petamas/Lepke/raw/master/Lepke.user.js
 // @downloadURL  https://github.com/petamas/Lepke/raw/master/Lepke.user.js
 // @run-at       document-start
@@ -535,7 +535,7 @@ register_module(new function() { //mod_logger.js:40
 //=============================================================================
 
 function regebbi_peldany__setup() { //mod_regebbi_peldany.js:5
-	if(new RegExp('^http://(www)?moly.hu/konyvek/.+$').test(document.location.href)) { //mod_regebbi_peldany.js:6
+	if(new RegExp('^https?://(www)?moly.hu/konyvek/.+$').test(document.location.href)) { //mod_regebbi_peldany.js:6
 		if (lepke__check_marker('.lepke_marker_regebbi_peldany', 'Button already exists')) //mod_regebbi_peldany.js:7
 			return; //mod_regebbi_peldany.js:8
 
@@ -674,7 +674,7 @@ function kukac__esemeny_refresh() { //mod_kukac.js:52
 } //mod_kukac.js:73
 
 function kukac__setup(className, urlpart,div_id,refresh_func) { //mod_kukac.js:75
-	if(new RegExp('^http://(www)?moly.hu/'+urlpart+'/[^\/]+$').test(document.location.href)) { //mod_kukac.js:76
+	if(new RegExp('^https?://(www)?moly.hu/'+urlpart+'/[^\/]+$').test(document.location.href)) { //mod_kukac.js:76
 			if (lepke__check_marker('.lepke_marker_kukac_'+className, 'Button already exists')) //mod_kukac.js:77
 				return; //mod_kukac.js:78
 
@@ -781,7 +781,7 @@ function link_adder__setup(marker_name,baselink,link_text,addsub,blank,encode) {
 	if(encode==null) //mod_rukkola.js:21
 		encode = true; //mod_rukkola.js:22
 
-	if(new RegExp('^http://(www)?moly.hu/konyvek/[^/]+$').test(document.location.href)) { //mod_rukkola.js:24
+	if(new RegExp('^https?://(www)?moly.hu/konyvek/[^/]+$').test(document.location.href)) { //mod_rukkola.js:24
 		if (lepke__check_marker('.lepke_marker_links_'+marker_name, 'Button already exists for '+marker_name)) //mod_rukkola.js:25
 			return; //mod_rukkola.js:26
 
