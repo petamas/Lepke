@@ -9,7 +9,7 @@
 // @include      https://www.moly.hu/*
 // @grant        GM_addStyle
 // @grant        GM_xmlhttpRequest
-// @version      7.8
+// @version      7.9
 // @updateURL    https://github.com/petamas/Lepke/raw/master/Lepke.user.js
 // @downloadURL  https://github.com/petamas/Lepke/raw/master/Lepke.user.js
 // @run-at       document-start
@@ -683,46 +683,48 @@ function kukac__setup(className, urlpart,div_id,refresh_func) { //mod_kukac.js:7
 				return; //mod_kukac.js:82
 
 			var container = campaign.querySelector('.add_comment_button'); //mod_kukac.js:84
-			assert(container,"container","mod_kukac.js",85); //mod_kukac.js:85
-			var button = document.createElement('div'); //mod_kukac.js:86
-			button.setAttribute('class','formbutton lepke_marker lepke_marker_kukac_'+className); //mod_kukac.js:87
-			button.innerHTML = '<a href="#">Résztvevők kukacolása</a><div id="'+div_id+'">Ideiglenes érték</div>'; //mod_kukac.js:88
-			button.querySelector('a').addEventListener('click', refresh_func, false); //mod_kukac.js:89
-			container.insertBefore(button, container.lastChild); //mod_kukac.js:90
+			if(lepke__check_real(container, 'No comment button (maybe '+className+' is not yet verified?) ')) //mod_kukac.js:85
+				return; //mod_kukac.js:86
 
-			console.log('> Done'); //mod_kukac.js:92
-	} else { //mod_kukac.js:93
-		console.log('> Not '+(className[0]=='e'?'an ':'a ')+className); //mod_kukac.js:94
-	} //mod_kukac.js:95
-} //mod_kukac.js:96
+			var button = document.createElement('div'); //mod_kukac.js:88
+			button.setAttribute('class','formbutton lepke_marker lepke_marker_kukac_'+className); //mod_kukac.js:89
+			button.innerHTML = '<a href="#">Résztvevők kukacolása</a><div id="'+div_id+'">Ideiglenes érték</div>'; //mod_kukac.js:90
+			button.querySelector('a').addEventListener('click', refresh_func, false); //mod_kukac.js:91
+			container.insertBefore(button, container.lastChild); //mod_kukac.js:92
 
-function kukac__kihivas_setup() { //mod_kukac.js:98
-	kukac__setup('campaign', 'kihivasok','lepke_kihivas_resztvevok',kukac__kihivas_refresh); //mod_kukac.js:99
-	kukac__kihivas_open = false; //mod_kukac.js:100
-}  //mod_kukac.js:101
+			console.log('> Done'); //mod_kukac.js:94
+	} else { //mod_kukac.js:95
+		console.log('> Not '+(className[0]=='e'?'an ':'a ')+className); //mod_kukac.js:96
+	} //mod_kukac.js:97
+} //mod_kukac.js:98
 
-function kukac__esemeny_setup() { //mod_kukac.js:103
-	kukac__setup('event', 'esemenyek','lepke_esemeny_resztvevok',kukac__esemeny_refresh); //mod_kukac.js:104
-	kukac__esemeny_open = false; //mod_kukac.js:105
-}  //mod_kukac.js:106
+function kukac__kihivas_setup() { //mod_kukac.js:100
+	kukac__setup('campaign', 'kihivasok','lepke_kihivas_resztvevok',kukac__kihivas_refresh); //mod_kukac.js:101
+	kukac__kihivas_open = false; //mod_kukac.js:102
+}  //mod_kukac.js:103
 
-register_module(new function() { //mod_kukac.js:108
-	this.name = 'esemeny_kukac'; //mod_kukac.js:109
-	this.optional = true; //mod_kukac.js:110
-	this.enabled = true; //mod_kukac.js:111
-	this.short_description = '_Résztvevők kukacolása_ gomb hozzáadása eseményekhez'; //mod_kukac.js:112
-	this.long_description = 'A gombra kattintva megjelenik egy kukacolt lista az esemény résztvevőiről, amit könnyedén be lehet másolni egy hozzászólásba, ha valamiért meg akarod szólítani őket. Nem csak az esemény tulajdonosának, hanem mindenkinek működik.'; //mod_kukac.js:113
-	this.setup = kukac__esemeny_setup; //mod_kukac.js:114
-}); //mod_kukac.js:115
+function kukac__esemeny_setup() { //mod_kukac.js:105
+	kukac__setup('event', 'esemenyek','lepke_esemeny_resztvevok',kukac__esemeny_refresh); //mod_kukac.js:106
+	kukac__esemeny_open = false; //mod_kukac.js:107
+}  //mod_kukac.js:108
 
-register_module(new function() { //mod_kukac.js:117
-	this.name = 'kihivas_kukac'; //mod_kukac.js:118
-	this.optional = true; //mod_kukac.js:119
-	this.enabled = true; //mod_kukac.js:120
-	this.short_description = '_Résztvevők kukacolása_ gomb hozzáadása kihívásokhoz'; //mod_kukac.js:121
-	this.long_description = 'A gombra kattintva megjelenik egy kukacolt lista az összes résztvevőről ill. külön a teljesítőkről és a nem teljesítőkről, amit könnyedén be lehet másolni egy hozzászólásba, ha valamiért meg akarod szólítani a résztvevőket. Nem csak a kihívásgazdának, hanem mindenkinek működik.'; //mod_kukac.js:122
-	this.setup = kukac__kihivas_setup; //mod_kukac.js:123
-}); //mod_kukac.js:124
+register_module(new function() { //mod_kukac.js:110
+	this.name = 'esemeny_kukac'; //mod_kukac.js:111
+	this.optional = true; //mod_kukac.js:112
+	this.enabled = true; //mod_kukac.js:113
+	this.short_description = '_Résztvevők kukacolása_ gomb hozzáadása eseményekhez'; //mod_kukac.js:114
+	this.long_description = 'A gombra kattintva megjelenik egy kukacolt lista az esemény résztvevőiről, amit könnyedén be lehet másolni egy hozzászólásba, ha valamiért meg akarod szólítani őket. Nem csak az esemény tulajdonosának, hanem mindenkinek működik.'; //mod_kukac.js:115
+	this.setup = kukac__esemeny_setup; //mod_kukac.js:116
+}); //mod_kukac.js:117
+
+register_module(new function() { //mod_kukac.js:119
+	this.name = 'kihivas_kukac'; //mod_kukac.js:120
+	this.optional = true; //mod_kukac.js:121
+	this.enabled = true; //mod_kukac.js:122
+	this.short_description = '_Résztvevők kukacolása_ gomb hozzáadása kihívásokhoz'; //mod_kukac.js:123
+	this.long_description = 'A gombra kattintva megjelenik egy kukacolt lista az összes résztvevőről ill. külön a teljesítőkről és a nem teljesítőkről, amit könnyedén be lehet másolni egy hozzászólásba, ha valamiért meg akarod szólítani a résztvevőket. Nem csak a kihívásgazdának, hanem mindenkinek működik.'; //mod_kukac.js:124
+	this.setup = kukac__kihivas_setup; //mod_kukac.js:125
+}); //mod_kukac.js:126
 //=============================================================================
 // Modul: kethasab
 //=============================================================================
