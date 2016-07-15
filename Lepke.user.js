@@ -9,7 +9,7 @@
 // @include      https://www.moly.hu/*
 // @grant        GM_addStyle
 // @grant        GM_xmlhttpRequest
-// @version      7.9
+// @version      7.10
 // @updateURL    https://github.com/petamas/Lepke/raw/master/Lepke.user.js
 // @downloadURL  https://github.com/petamas/Lepke/raw/master/Lepke.user.js
 // @run-at       document-start
@@ -176,7 +176,7 @@ function lepke__get_user() { //moly.js:16
 function lepke__get_menu() { //moly.js:24
 	var mymenu = document.querySelector('#lepke_menu'); //moly.js:25
 	if(mymenu == null) { //moly.js:26
-		var header = document.querySelector('#header_right_menu'); //moly.js:27
+		var header = document.querySelector('.toprightmenu'); //moly.js:27
 		assert(header != null,"header != null","moly.js",28); //moly.js:28
 		mymenu = document.createElement('li'); //moly.js:29
 		assert(mymenu != null && mymenu != undefined,"mymenu != null && mymenu != undefined","moly.js",30); //moly.js:30
@@ -309,6 +309,40 @@ function member_cmp(a,b) { //moly.js:158
 	var bn = b.name.toLowerCase(); //moly.js:160
 	return std_compare(an,bn); //moly.js:161
 } //moly.js:162
+
+function kihivas_resztvevok(kihivas_url, callback) { //moly.js:164
+	MY_xmlhttpRequest({ //moly.js:165
+		method: "GET", //moly.js:166
+		url: kihivas_url + '/teljesitesek', //moly.js:167
+		synchronous: false, //moly.js:168
+		onreadystatechange: function(response) { //moly.js:169
+			if (response.readyState==4 && response.status==200){ //moly.js:170
+				var xmldoc = (new DOMParser).parseFromString(response.responseText,'text/html'); //moly.js:171
+				var tr = xmldoc.querySelectorAll('#content table tr'); //moly.js:172
+				var teljesitok = []; //moly.js:173
+				var nem_teljesitok = []; //moly.js:174
+				for(var i = 1; i<tr.length; i++) { //moly.js:175
+					var link = tr[i].querySelector('a'); //moly.js:176
+					assert(link != null,"link != null","moly.js",177); //moly.js:177
+					var mem = new member(link.innerHTML, link.getAttribute('href')); //moly.js:178
+					var td = tr[i].lastChild; //moly.js:179
+					if(td.querySelector('.completed') != null || td.querySelector('.on') != null) { //moly.js:180
+						teljesitok[teljesitok.length] = mem; //moly.js:181
+					} else { //moly.js:182
+						nem_teljesitok[nem_teljesitok.length] = mem; //moly.js:183
+					} //moly.js:184
+				} //moly.js:185
+
+				var resztvevok = teljesitok.concat(nem_teljesitok); //moly.js:187
+				resztvevok.sort(member_cmp); //moly.js:188
+				teljesitok.sort(member_cmp); //moly.js:189
+				nem_teljesitok.sort(member_cmp); //moly.js:190
+
+				callback(resztvevok, teljesitok, nem_teljesitok); //moly.js:192
+			} //moly.js:193
+		} //moly.js:194
+	}); //moly.js:195
+} //moly.js:196
 //=============================================================================
 // Beállítások
 //=============================================================================
@@ -614,117 +648,89 @@ function kukac__kihivas_refresh() { //mod_kukac.js:8
 	logger__log('kihivas_kukac'); //mod_kukac.js:13
 	document.querySelector('#lepke_kihivas_resztvevok').innerHTML = 'Betöltés...'; //mod_kukac.js:14
 
-	MY_xmlhttpRequest({ //mod_kukac.js:16
-		method: "GET", //mod_kukac.js:17
-		url: location.href + '/teljesitesek', //mod_kukac.js:18
-		synchronous: false, //mod_kukac.js:19
-		onreadystatechange: function(response) { //mod_kukac.js:20
-			if (response.readyState==4 && response.status==200){ //mod_kukac.js:21
-				var xmldoc = (new DOMParser).parseFromString(response.responseText,'text/html'); //mod_kukac.js:22
-				var tr = xmldoc.querySelectorAll('#content table tr'); //mod_kukac.js:23
-				var teljesitok = []; //mod_kukac.js:24
-				var nem_teljesitok = []; //mod_kukac.js:25
-				for(var i = 1; i<tr.length; i++) { //mod_kukac.js:26
-					var link = tr[i].querySelector('a'); //mod_kukac.js:27
-					assert(link != null,"link != null","mod_kukac.js",28); //mod_kukac.js:28
-					var mem = new member(link.innerHTML, link.getAttribute('href')); //mod_kukac.js:29
-					var td = tr[i].lastChild; //mod_kukac.js:30
-					if(td.querySelector('.completed') != null || td.querySelector('.on') != null) { //mod_kukac.js:31
-						teljesitok[teljesitok.length] = mem; //mod_kukac.js:32
-					} else { //mod_kukac.js:33
-						nem_teljesitok[nem_teljesitok.length] = mem; //mod_kukac.js:34
-					} //mod_kukac.js:35
-				} //mod_kukac.js:36
+	kihivas_resztvevok(location.href, function(resztvevok, teljesitok, nem_teljesitok){ //mod_kukac.js:16
+		document.querySelector('#lepke_kihivas_resztvevok').innerHTML = //mod_kukac.js:17
+			'<p><b>Résztvevők ('+resztvevok.length+'):</b> ' + resztvevok.map(member_ref).join(", ") + '</p>' + //mod_kukac.js:18
+			'<p><b>Teljesítők ('+teljesitok.length+'):</b> ' + teljesitok.map(member_ref).join(", ") + '</p>' + //mod_kukac.js:19
+			'<p><b>Nem teljesítők ('+nem_teljesitok.length+'):</b> ' + nem_teljesitok.map(member_ref).join(", ") + '</p>'; //mod_kukac.js:20
+	}); //mod_kukac.js:21
+} //mod_kukac.js:22
 
-				var resztvevok = teljesitok.concat(nem_teljesitok); //mod_kukac.js:38
-				resztvevok.sort(member_cmp); //mod_kukac.js:39
-				teljesitok.sort(member_cmp); //mod_kukac.js:40
-				nem_teljesitok.sort(member_cmp); //mod_kukac.js:41
+function kukac__esemeny_refresh() { //mod_kukac.js:24
+	kukac__esemeny_open = !kukac__esemeny_open; //mod_kukac.js:25
+	if(!kukac__esemeny_open) //mod_kukac.js:26
+		return; //mod_kukac.js:27
 
-				document.querySelector('#lepke_kihivas_resztvevok').innerHTML = //mod_kukac.js:43
-					'<p><b>Résztvevők ('+resztvevok.length+'):</b> ' + resztvevok.map(member_ref).join(", ") + '</p>' + //mod_kukac.js:44
-					'<p><b>Teljesítők ('+teljesitok.length+'):</b> ' + teljesitok.map(member_ref).join(", ") + '</p>' + //mod_kukac.js:45
-					'<p><b>Nem teljesítők ('+nem_teljesitok.length+'):</b> ' + nem_teljesitok.map(member_ref).join(", ") + '</p>'; //mod_kukac.js:46
-			} //mod_kukac.js:47
-		} //mod_kukac.js:48
-	}); //mod_kukac.js:49
-} //mod_kukac.js:50
+	logger__log('esemeny_kukac'); //mod_kukac.js:29
+	document.querySelector('#lepke_esemeny_resztvevok').innerHTML = 'Betöltés...'; //mod_kukac.js:30
 
-function kukac__esemeny_refresh() { //mod_kukac.js:52
-	kukac__esemeny_open = !kukac__esemeny_open; //mod_kukac.js:53
-	if(!kukac__esemeny_open) //mod_kukac.js:54
-		return; //mod_kukac.js:55
+	var text = document.querySelector('#content .event .text'); //mod_kukac.js:32
+	assert(text != null,"text != null","mod_kukac.js",33); //mod_kukac.js:33
+	var linkek = text.nextSibling.querySelectorAll('.user_selector'); //mod_kukac.js:34
 
-	logger__log('esemeny_kukac'); //mod_kukac.js:57
-	document.querySelector('#lepke_esemeny_resztvevok').innerHTML = 'Betöltés...'; //mod_kukac.js:58
+	var resztvevok = []; //mod_kukac.js:36
+	for(var i = 0; i<linkek.length; i++) { //mod_kukac.js:37
+		var link = linkek[i]; //mod_kukac.js:38
+		resztvevok[resztvevok.length]= new member(link.innerHTML, link.getAttribute('href')); //mod_kukac.js:39
+	}	 //mod_kukac.js:40
 
-	var text = document.querySelector('#content .event .text'); //mod_kukac.js:60
-	assert(text != null,"text != null","mod_kukac.js",61); //mod_kukac.js:61
-	var linkek = text.nextSibling.querySelectorAll('.user_selector'); //mod_kukac.js:62
+	resztvevok.sort(member_cmp); //mod_kukac.js:42
+	var result = '<b>Résztvevők ('+resztvevok.length+'):</b> ' + resztvevok.map(member_ref).join(", "); //mod_kukac.js:43
+	document.querySelector('#lepke_esemeny_resztvevok').innerHTML = '<p>'+result+'</p>'; //mod_kukac.js:44
+} //mod_kukac.js:45
 
-	var resztvevok = []; //mod_kukac.js:64
-	for(var i = 0; i<linkek.length; i++) { //mod_kukac.js:65
-		var link = linkek[i]; //mod_kukac.js:66
-		resztvevok[resztvevok.length]= new member(link.innerHTML, link.getAttribute('href')); //mod_kukac.js:67
-	}	 //mod_kukac.js:68
+function kukac__setup(className, urlpart,div_id,refresh_func) { //mod_kukac.js:47
+	if(new RegExp('^https?://(www)?moly.hu/'+urlpart+'/[^\/]+$').test(document.location.href)) { //mod_kukac.js:48
+			if (lepke__check_marker('.lepke_marker_kukac_'+className, 'Button already exists')) //mod_kukac.js:49
+				return; //mod_kukac.js:50
 
-	resztvevok.sort(member_cmp); //mod_kukac.js:70
-	var result = '<b>Résztvevők ('+resztvevok.length+'):</b> ' + resztvevok.map(member_ref).join(", "); //mod_kukac.js:71
-	document.querySelector('#lepke_esemeny_resztvevok').innerHTML = '<p>'+result+'</p>'; //mod_kukac.js:72
-} //mod_kukac.js:73
+			var campaign = document.querySelector('#content .item.'+className); //mod_kukac.js:52
+			if(lepke__check_real(campaign, 'Not a real '+className)) //mod_kukac.js:53
+				return; //mod_kukac.js:54
 
-function kukac__setup(className, urlpart,div_id,refresh_func) { //mod_kukac.js:75
-	if(new RegExp('^https?://(www)?moly.hu/'+urlpart+'/[^\/]+$').test(document.location.href)) { //mod_kukac.js:76
-			if (lepke__check_marker('.lepke_marker_kukac_'+className, 'Button already exists')) //mod_kukac.js:77
-				return; //mod_kukac.js:78
+			var container = campaign.querySelector('.add_comment_button'); //mod_kukac.js:56
+			if(lepke__check_real(container, 'No comment button (maybe '+className+' is not yet verified?) ')) //mod_kukac.js:57
+				return; //mod_kukac.js:58
 
-			var campaign = document.querySelector('#content .item.'+className); //mod_kukac.js:80
-			if(lepke__check_real(campaign, 'Not a real '+className)) //mod_kukac.js:81
-				return; //mod_kukac.js:82
+			var button = document.createElement('div'); //mod_kukac.js:60
+			button.setAttribute('class','formbutton lepke_marker lepke_marker_kukac_'+className); //mod_kukac.js:61
+			button.innerHTML = '<a href="#">Résztvevők kukacolása</a><div id="'+div_id+'">Ideiglenes érték</div>'; //mod_kukac.js:62
+			button.querySelector('a').addEventListener('click', refresh_func, false); //mod_kukac.js:63
+			container.insertBefore(button, container.lastChild); //mod_kukac.js:64
 
-			var container = campaign.querySelector('.add_comment_button'); //mod_kukac.js:84
-			if(lepke__check_real(container, 'No comment button (maybe '+className+' is not yet verified?) ')) //mod_kukac.js:85
-				return; //mod_kukac.js:86
+			console.log('> Done'); //mod_kukac.js:66
+	} else { //mod_kukac.js:67
+		console.log('> Not '+(className[0]=='e'?'an ':'a ')+className); //mod_kukac.js:68
+	} //mod_kukac.js:69
+} //mod_kukac.js:70
 
-			var button = document.createElement('div'); //mod_kukac.js:88
-			button.setAttribute('class','formbutton lepke_marker lepke_marker_kukac_'+className); //mod_kukac.js:89
-			button.innerHTML = '<a href="#">Résztvevők kukacolása</a><div id="'+div_id+'">Ideiglenes érték</div>'; //mod_kukac.js:90
-			button.querySelector('a').addEventListener('click', refresh_func, false); //mod_kukac.js:91
-			container.insertBefore(button, container.lastChild); //mod_kukac.js:92
+function kukac__kihivas_setup() { //mod_kukac.js:72
+	kukac__setup('campaign', 'kihivasok','lepke_kihivas_resztvevok',kukac__kihivas_refresh); //mod_kukac.js:73
+	kukac__kihivas_open = false; //mod_kukac.js:74
+}  //mod_kukac.js:75
 
-			console.log('> Done'); //mod_kukac.js:94
-	} else { //mod_kukac.js:95
-		console.log('> Not '+(className[0]=='e'?'an ':'a ')+className); //mod_kukac.js:96
-	} //mod_kukac.js:97
-} //mod_kukac.js:98
+function kukac__esemeny_setup() { //mod_kukac.js:77
+	kukac__setup('event', 'esemenyek','lepke_esemeny_resztvevok',kukac__esemeny_refresh); //mod_kukac.js:78
+	kukac__esemeny_open = false; //mod_kukac.js:79
+}  //mod_kukac.js:80
 
-function kukac__kihivas_setup() { //mod_kukac.js:100
-	kukac__setup('campaign', 'kihivasok','lepke_kihivas_resztvevok',kukac__kihivas_refresh); //mod_kukac.js:101
-	kukac__kihivas_open = false; //mod_kukac.js:102
-}  //mod_kukac.js:103
+register_module(new function() { //mod_kukac.js:82
+	this.name = 'esemeny_kukac'; //mod_kukac.js:83
+	this.optional = true; //mod_kukac.js:84
+	this.enabled = true; //mod_kukac.js:85
+	this.short_description = '_Résztvevők kukacolása_ gomb hozzáadása eseményekhez'; //mod_kukac.js:86
+	this.long_description = 'A gombra kattintva megjelenik egy kukacolt lista az esemény résztvevőiről, amit könnyedén be lehet másolni egy hozzászólásba, ha valamiért meg akarod szólítani őket. Nem csak az esemény tulajdonosának, hanem mindenkinek működik.'; //mod_kukac.js:87
+	this.setup = kukac__esemeny_setup; //mod_kukac.js:88
+}); //mod_kukac.js:89
 
-function kukac__esemeny_setup() { //mod_kukac.js:105
-	kukac__setup('event', 'esemenyek','lepke_esemeny_resztvevok',kukac__esemeny_refresh); //mod_kukac.js:106
-	kukac__esemeny_open = false; //mod_kukac.js:107
-}  //mod_kukac.js:108
-
-register_module(new function() { //mod_kukac.js:110
-	this.name = 'esemeny_kukac'; //mod_kukac.js:111
-	this.optional = true; //mod_kukac.js:112
-	this.enabled = true; //mod_kukac.js:113
-	this.short_description = '_Résztvevők kukacolása_ gomb hozzáadása eseményekhez'; //mod_kukac.js:114
-	this.long_description = 'A gombra kattintva megjelenik egy kukacolt lista az esemény résztvevőiről, amit könnyedén be lehet másolni egy hozzászólásba, ha valamiért meg akarod szólítani őket. Nem csak az esemény tulajdonosának, hanem mindenkinek működik.'; //mod_kukac.js:115
-	this.setup = kukac__esemeny_setup; //mod_kukac.js:116
-}); //mod_kukac.js:117
-
-register_module(new function() { //mod_kukac.js:119
-	this.name = 'kihivas_kukac'; //mod_kukac.js:120
-	this.optional = true; //mod_kukac.js:121
-	this.enabled = true; //mod_kukac.js:122
-	this.short_description = '_Résztvevők kukacolása_ gomb hozzáadása kihívásokhoz'; //mod_kukac.js:123
-	this.long_description = 'A gombra kattintva megjelenik egy kukacolt lista az összes résztvevőről ill. külön a teljesítőkről és a nem teljesítőkről, amit könnyedén be lehet másolni egy hozzászólásba, ha valamiért meg akarod szólítani a résztvevőket. Nem csak a kihívásgazdának, hanem mindenkinek működik.'; //mod_kukac.js:124
-	this.setup = kukac__kihivas_setup; //mod_kukac.js:125
-}); //mod_kukac.js:126
+register_module(new function() { //mod_kukac.js:91
+	this.name = 'kihivas_kukac'; //mod_kukac.js:92
+	this.optional = true; //mod_kukac.js:93
+	this.enabled = true; //mod_kukac.js:94
+	this.short_description = '_Résztvevők kukacolása_ gomb hozzáadása kihívásokhoz'; //mod_kukac.js:95
+	this.long_description = 'A gombra kattintva megjelenik egy kukacolt lista az összes résztvevőről ill. külön a teljesítőkről és a nem teljesítőkről, amit könnyedén be lehet másolni egy hozzászólásba, ha valamiért meg akarod szólítani a résztvevőket. Nem csak a kihívásgazdának, hanem mindenkinek működik.'; //mod_kukac.js:96
+	this.setup = kukac__kihivas_setup; //mod_kukac.js:97
+}); //mod_kukac.js:98
 //=============================================================================
 // Modul: kethasab
 //=============================================================================
@@ -898,31 +904,31 @@ register_module(new function() { //mod_suti.js:27
 // Egyebek
 //=============================================================================
 
-function main() { //Lepke.main.js:87
-	if(lepke__get_user()=='') //Lepke.main.js:88
-	{ //Lepke.main.js:89
-		console.log('User menu cannot be found, exiting...'); //Lepke.main.js:90
-		return; //Lepke.main.js:91
-	} //Lepke.main.js:92
+function main() { //Lepke.main.js:88
+	if(lepke__get_user()=='') //Lepke.main.js:89
+	{ //Lepke.main.js:90
+		console.log('User menu cannot be found, exiting...'); //Lepke.main.js:91
+		return; //Lepke.main.js:92
+	} //Lepke.main.js:93
 
-	console.log('Start setup of '+lepke__modules_id.length+' modules'); //Lepke.main.js:94
-	for(var id = 0; id<lepke__modules_id.length; id++) { //Lepke.main.js:95
-		var mod = lepke__modules_id[id]; //Lepke.main.js:96
-		console.log('Setup module '+mod.name); //Lepke.main.js:97
-		if(!mod.optional || mod.enabled) //Lepke.main.js:98
-		{ //Lepke.main.js:99
-			mod.setup(); //Lepke.main.js:100
-		} else { //Lepke.main.js:101
-			console.log('> Disabled'); //Lepke.main.js:102
-		} //Lepke.main.js:103
-	} //Lepke.main.js:104
-} //Lepke.main.js:105
+	console.log('Start setup of '+lepke__modules_id.length+' modules'); //Lepke.main.js:95
+	for(var id = 0; id<lepke__modules_id.length; id++) { //Lepke.main.js:96
+		var mod = lepke__modules_id[id]; //Lepke.main.js:97
+		console.log('Setup module '+mod.name); //Lepke.main.js:98
+		if(!mod.optional || mod.enabled) //Lepke.main.js:99
+		{ //Lepke.main.js:100
+			mod.setup(); //Lepke.main.js:101
+		} else { //Lepke.main.js:102
+			console.log('> Disabled'); //Lepke.main.js:103
+		} //Lepke.main.js:104
+	} //Lepke.main.js:105
+} //Lepke.main.js:106
 
-if(typeof WScript !== 'undefined') { //Lepke.main.js:107
-	WScript.Echo('Ne kozvetlenul inditsd el a fajlt, hanem kovesd a telepitesi utmutatot!'); //Lepke.main.js:108
-} else { //Lepke.main.js:109
-	console.log('Adding listener to DOMContentLoaded...'); //Lepke.main.js:110
-	window.addEventListener('DOMContentLoaded', main); //Lepke.main.js:111
-} //Lepke.main.js:112
+if(typeof WScript !== 'undefined') { //Lepke.main.js:108
+	WScript.Echo('Ne kozvetlenul inditsd el a fajlt, hanem kovesd a telepitesi utmutatot!'); //Lepke.main.js:109
+} else { //Lepke.main.js:110
+	console.log('Adding listener to DOMContentLoaded...'); //Lepke.main.js:111
+	window.addEventListener('DOMContentLoaded', main); //Lepke.main.js:112
+} //Lepke.main.js:113
 
 // VÉGE
