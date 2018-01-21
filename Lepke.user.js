@@ -9,7 +9,7 @@
 // @include      https://www.moly.hu/*
 // @grant        GM_addStyle
 // @grant        GM_xmlhttpRequest
-// @version      7.13
+// @version      7.15
 // @updateURL    https://github.com/petamas/Lepke/raw/master/Lepke.user.js
 // @downloadURL  https://github.com/petamas/Lepke/raw/master/Lepke.user.js
 // @run-at       document-start
@@ -293,7 +293,7 @@ function modal__open(content,close) { //moly.js:129
 	var close_button = modal.querySelector('.modal-close').firstChild; //moly.js:143
 	if(close == undefined || close == null) //moly.js:144
 		close = modal__close; //moly.js:145
-	close_button.addEventListener('click', close); //moly.js:146
+	close_button.addEventListener('click', prevent(close)); //moly.js:146
 
 	return modal; //moly.js:148
 } //moly.js:149
@@ -439,7 +439,7 @@ function settings__setup() { //mod_settings.js:83
 	settings__load(); //mod_settings.js:84
 	if (lepke__check_marker('.lepke_marker_settings', 'Settings menu item is already added')) //mod_settings.js:85
 		return; //mod_settings.js:86
-	var settings = lepke__createMenuItem('Beállítások', '#', settings__open, 'lepke_marker_settings'); //mod_settings.js:87
+	var settings = lepke__createMenuItem('Beállítások', '#', prevent(settings__open), 'lepke_marker_settings'); //mod_settings.js:87
 	lepke__get_menu().appendChild(settings); //mod_settings.js:88
 } //mod_settings.js:89
 
@@ -694,7 +694,7 @@ function kukac__setup(className, urlpart,div_id,refresh_func) { //mod_kukac.js:4
 			if (lepke__check_marker('.lepke_marker_kukac_'+className, 'Button already exists')) //mod_kukac.js:49
 				return; //mod_kukac.js:50
 
-			var campaign = document.querySelector('#content .item.'+className); //mod_kukac.js:52
+			var campaign = document.querySelector('#content'); //mod_kukac.js:52
 			if(lepke__check_real(campaign, 'Not a real '+className)) //mod_kukac.js:53
 				return; //mod_kukac.js:54
 
@@ -756,243 +756,262 @@ function hozzaszolas_filter__get_user(item_content) //mod_hozzaszolas_filter.js:
 	return new member(selector.innerHTML, selector.getAttribute('href')); //mod_hozzaszolas_filter.js:13
 } //mod_hozzaszolas_filter.js:14
 
-function hozzaszolas_filter__author_in_list(comment, list) //mod_hozzaszolas_filter.js:16
+function hozzaszolas_filter__subtract(fromlist, whatlist) //mod_hozzaszolas_filter.js:16
 { //mod_hozzaszolas_filter.js:17
-	var comment_author = hozzaszolas_filter__get_user(comment); //mod_hozzaszolas_filter.js:18
-	for (var i=0; i<list.length; i++) //mod_hozzaszolas_filter.js:19
-		if (list[i].href==comment_author.href || list[i].name==comment_author.name) //mod_hozzaszolas_filter.js:20
-			return true; //mod_hozzaszolas_filter.js:21
-	return false; //mod_hozzaszolas_filter.js:22
-} //mod_hozzaszolas_filter.js:23
+	var result=[]; //mod_hozzaszolas_filter.js:18
+	for (var i=0; i<fromlist.length; i++) //mod_hozzaszolas_filter.js:19
+	{ //mod_hozzaszolas_filter.js:20
+		var ok = true; //mod_hozzaszolas_filter.js:21
+		for (var j=0; j<whatlist.length; j++) //mod_hozzaszolas_filter.js:22
+			if (fromlist[i].href==whatlist[j].href || fromlist[i].name==whatlist[j].name) //mod_hozzaszolas_filter.js:23
+				ok = false; //mod_hozzaszolas_filter.js:24
+		if (ok) //mod_hozzaszolas_filter.js:25
+			result.push(fromlist[i]); //mod_hozzaszolas_filter.js:26
+	} //mod_hozzaszolas_filter.js:27
+	return result; //mod_hozzaszolas_filter.js:28
+} //mod_hozzaszolas_filter.js:29
 
-function hozzaszolas_filter__mention_in_list(comment, list) //mod_hozzaszolas_filter.js:25
-{ //mod_hozzaszolas_filter.js:26
-	for (var i=0; i<list.length; i++) //mod_hozzaszolas_filter.js:27
-	{ //mod_hozzaszolas_filter.js:28
-		var comment_text = comment.querySelector('.atom > .comment_text'); //mod_hozzaszolas_filter.js:29
-		assert(comment_text,"comment_text","mod_hozzaszolas_filter.js",30); //mod_hozzaszolas_filter.js:30
-		if (comment_text.textContent.indexOf("@"+list[i].name) != -1) //mod_hozzaszolas_filter.js:31
-			return true; //mod_hozzaszolas_filter.js:32
-	} //mod_hozzaszolas_filter.js:33
-	return false; //mod_hozzaszolas_filter.js:34
-} //mod_hozzaszolas_filter.js:35
+function hozzaszolas_filter__author_in_list(comment, list) //mod_hozzaszolas_filter.js:31
+{ //mod_hozzaszolas_filter.js:32
+	var comment_author = hozzaszolas_filter__get_user(comment); //mod_hozzaszolas_filter.js:33
+	for (var i=0; i<list.length; i++) //mod_hozzaszolas_filter.js:34
+		if (list[i].href==comment_author.href || list[i].name==comment_author.name) //mod_hozzaszolas_filter.js:35
+			return true; //mod_hozzaszolas_filter.js:36
+	return false; //mod_hozzaszolas_filter.js:37
+} //mod_hozzaszolas_filter.js:38
 
-function hozzaszolas_filter__showhide() //mod_hozzaszolas_filter.js:37
-{ //mod_hozzaszolas_filter.js:38
-	kihivas_resztvevok(location.href, function(resztvevok, teljesitok, nem_teljesitok){ //mod_hozzaszolas_filter.js:39
-		var kihivas_content = document.querySelector('#content .campaign > .item_content'); //mod_hozzaszolas_filter.js:40
+function hozzaszolas_filter__mention_in_list(comment, list) //mod_hozzaszolas_filter.js:40
+{ //mod_hozzaszolas_filter.js:41
+	for (var i=0; i<list.length; i++) //mod_hozzaszolas_filter.js:42
+	{ //mod_hozzaszolas_filter.js:43
+		var comment_text = comment.querySelector('.atom > .comment_text'); //mod_hozzaszolas_filter.js:44
+		assert(comment_text,"comment_text","mod_hozzaszolas_filter.js",45); //mod_hozzaszolas_filter.js:45
+		if (comment_text.textContent.indexOf("@"+list[i].name) != -1) //mod_hozzaszolas_filter.js:46
+			return true; //mod_hozzaszolas_filter.js:47
+	} //mod_hozzaszolas_filter.js:48
+	return false; //mod_hozzaszolas_filter.js:49
+} //mod_hozzaszolas_filter.js:50
 
-		var kihivasgazdak = [hozzaszolas_filter__get_user(kihivas_content)]; //mod_hozzaszolas_filter.js:42
-		var kihivasgazdak_text = document.querySelector('#lepke_hozzaszolas_filter_extra_kihivasgazdak'); //mod_hozzaszolas_filter.js:43
-		assert(kihivasgazdak_text,"kihivasgazdak_text","mod_hozzaszolas_filter.js",44); //mod_hozzaszolas_filter.js:44
-		var kihivasgazdak_names = kihivasgazdak_text.value.trim().split(/[, \t]+/); //mod_hozzaszolas_filter.js:45
-		for (var i=0; i<kihivasgazdak_names.length; i++) //mod_hozzaszolas_filter.js:46
-			kihivasgazdak.push(new member(kihivasgazdak_names[i].replace(/^@/,''), '')); //mod_hozzaszolas_filter.js:47
+function hozzaszolas_filter__showhide() //mod_hozzaszolas_filter.js:52
+{ //mod_hozzaszolas_filter.js:53
+	kihivas_resztvevok(location.href, function(resztvevok, teljesitok, nem_teljesitok){ //mod_hozzaszolas_filter.js:54
+		var kihivas_content = document.querySelector('#content > p'); //mod_hozzaszolas_filter.js:55
 
-		var current_user = new member(lepke__get_user(), lepke__get_user_link_relative()); //mod_hozzaszolas_filter.js:49
+		var kihivasgazdak = [hozzaszolas_filter__get_user(kihivas_content)]; //mod_hozzaszolas_filter.js:57
+		var kihivasgazdak_text = document.querySelector('#lepke_hozzaszolas_filter_extra_kihivasgazdak'); //mod_hozzaszolas_filter.js:58
+		assert(kihivasgazdak_text,"kihivasgazdak_text","mod_hozzaszolas_filter.js",59); //mod_hozzaszolas_filter.js:59
+		var kihivasgazdak_names = kihivasgazdak_text.value.trim().split(/[, \t]+/); //mod_hozzaszolas_filter.js:60
+		for (var i=0; i<kihivasgazdak_names.length; i++) //mod_hozzaszolas_filter.js:61
+			kihivasgazdak.push(new member(kihivasgazdak_names[i].replace(/^@/,''), '')); //mod_hozzaszolas_filter.js:62
 
-		var nem_teljesitok_kiv_kihivasgazda = []; //mod_hozzaszolas_filter.js:51
-		for (var i=0; i<nem_teljesitok.length; i++) //mod_hozzaszolas_filter.js:52
-		{ //mod_hozzaszolas_filter.js:53
-			var ok = true; //mod_hozzaszolas_filter.js:54
-			for (var j=0; j<kihivasgazdak.length; j++) //mod_hozzaszolas_filter.js:55
-				if (nem_teljesitok[i].href==kihivasgazdak[j].href || nem_teljesitok[i].name==kihivasgazdak[j].name) //mod_hozzaszolas_filter.js:56
-					ok = false; //mod_hozzaszolas_filter.js:57
-			if (ok) //mod_hozzaszolas_filter.js:58
-				nem_teljesitok_kiv_kihivasgazda.push(nem_teljesitok[i]); //mod_hozzaszolas_filter.js:59
-		} //mod_hozzaszolas_filter.js:60
+		var current_user = new member(lepke__get_user(), lepke__get_user_link_relative()); //mod_hozzaszolas_filter.js:64
 
-		var comments = document.querySelectorAll('.comment > .item_content'); //mod_hozzaszolas_filter.js:62
-		for (var i=0; i<comments.length; i++) //mod_hozzaszolas_filter.js:63
-		{ //mod_hozzaszolas_filter.js:64
-			var comment = comments[i]; //mod_hozzaszolas_filter.js:65
-			var colors = []; //mod_hozzaszolas_filter.js:66
-			var show = false; //mod_hozzaszolas_filter.js:67
-			var match = 0; //mod_hozzaszolas_filter.js:68
+		var nem_teljesitok_kiv_kihivasgazda = hozzaszolas_filter__subtract(nem_teljesitok, kihivasgazdak); //mod_hozzaszolas_filter.js:66
+		var hozzaszolok = []; //mod_hozzaszolas_filter.js:67
 
-			if (hozzaszolas_filter__author_in_list(comment, kihivasgazdak)) //mod_hozzaszolas_filter.js:70
-			{ //mod_hozzaszolas_filter.js:71
-				match++; //mod_hozzaszolas_filter.js:72
-				colors.push('#dfcfef'); //mod_hozzaszolas_filter.js:73
-				if (document.querySelector('#lepke_hozzaszolas_filter_kihivasgazda').checked) //mod_hozzaszolas_filter.js:74
-					show = true; //mod_hozzaszolas_filter.js:75
-			} //mod_hozzaszolas_filter.js:76
-			if (hozzaszolas_filter__author_in_list(comment, teljesitok)) //mod_hozzaszolas_filter.js:77
-			{ //mod_hozzaszolas_filter.js:78
-				match++; //mod_hozzaszolas_filter.js:79
-				colors.push('#dfefcf'); //mod_hozzaszolas_filter.js:80
-				if (document.querySelector('#lepke_hozzaszolas_filter_teljesitok').checked && !hozzaszolas_filter__author_in_list(comment, kihivasgazdak)) //mod_hozzaszolas_filter.js:81
-					show = true; //mod_hozzaszolas_filter.js:82
-			} //mod_hozzaszolas_filter.js:83
-			if (hozzaszolas_filter__author_in_list(comment, nem_teljesitok)) //mod_hozzaszolas_filter.js:84
-			{ //mod_hozzaszolas_filter.js:85
-				match++; //mod_hozzaszolas_filter.js:86
-				colors.push('#efcfcf'); //mod_hozzaszolas_filter.js:87
-				if (document.querySelector('#lepke_hozzaszolas_filter_nem_teljesitok').checked && !hozzaszolas_filter__author_in_list(comment, kihivasgazdak)) //mod_hozzaszolas_filter.js:88
-					show = true; //mod_hozzaszolas_filter.js:89
-			} //mod_hozzaszolas_filter.js:90
-			if (!hozzaszolas_filter__author_in_list(comment, resztvevok)) //mod_hozzaszolas_filter.js:91
-			{ //mod_hozzaszolas_filter.js:92
-				match++; //mod_hozzaszolas_filter.js:93
-				colors.push('#ffffcf'); //mod_hozzaszolas_filter.js:94
-				if (document.querySelector('#lepke_hozzaszolas_filter_nem_resztvevok').checked && !hozzaszolas_filter__author_in_list(comment, kihivasgazdak)) //mod_hozzaszolas_filter.js:95
-					show = true; //mod_hozzaszolas_filter.js:96
-			} //mod_hozzaszolas_filter.js:97
-			if (hozzaszolas_filter__mention_in_list(comment, nem_teljesitok_kiv_kihivasgazda)) //mod_hozzaszolas_filter.js:98
-			{ //mod_hozzaszolas_filter.js:99
-				match++; //mod_hozzaszolas_filter.js:100
+		var comments = document.querySelectorAll('.comment > .item_content'); //mod_hozzaszolas_filter.js:69
+		for (var i=0; i<comments.length; i++) //mod_hozzaszolas_filter.js:70
+		{ //mod_hozzaszolas_filter.js:71
+			var comment = comments[i]; //mod_hozzaszolas_filter.js:72
+			var colors = []; //mod_hozzaszolas_filter.js:73
+			var show = false; //mod_hozzaszolas_filter.js:74
+			var match = 0; //mod_hozzaszolas_filter.js:75
+
+			hozzaszolok.push(hozzaszolas_filter__get_user(comment)); //mod_hozzaszolas_filter.js:77
+
+			if (hozzaszolas_filter__author_in_list(comment, kihivasgazdak)) //mod_hozzaszolas_filter.js:79
+			{ //mod_hozzaszolas_filter.js:80
+				match++; //mod_hozzaszolas_filter.js:81
+				colors.push('#dfcfef'); //mod_hozzaszolas_filter.js:82
+				if (document.querySelector('#lepke_hozzaszolas_filter_kihivasgazda').checked) //mod_hozzaszolas_filter.js:83
+					show = true; //mod_hozzaszolas_filter.js:84
+			} //mod_hozzaszolas_filter.js:85
+			if (hozzaszolas_filter__author_in_list(comment, teljesitok)) //mod_hozzaszolas_filter.js:86
+			{ //mod_hozzaszolas_filter.js:87
+				match++; //mod_hozzaszolas_filter.js:88
+				colors.push('#dfefcf'); //mod_hozzaszolas_filter.js:89
+				if (document.querySelector('#lepke_hozzaszolas_filter_teljesitok').checked && !hozzaszolas_filter__author_in_list(comment, kihivasgazdak)) //mod_hozzaszolas_filter.js:90
+					show = true; //mod_hozzaszolas_filter.js:91
+			} //mod_hozzaszolas_filter.js:92
+			if (hozzaszolas_filter__author_in_list(comment, nem_teljesitok)) //mod_hozzaszolas_filter.js:93
+			{ //mod_hozzaszolas_filter.js:94
+				match++; //mod_hozzaszolas_filter.js:95
+				colors.push('#efcfcf'); //mod_hozzaszolas_filter.js:96
+				if (document.querySelector('#lepke_hozzaszolas_filter_nem_teljesitok').checked && !hozzaszolas_filter__author_in_list(comment, kihivasgazdak)) //mod_hozzaszolas_filter.js:97
+					show = true; //mod_hozzaszolas_filter.js:98
+			} //mod_hozzaszolas_filter.js:99
+			if (!hozzaszolas_filter__author_in_list(comment, resztvevok)) //mod_hozzaszolas_filter.js:100
+			{ //mod_hozzaszolas_filter.js:101
+				match++; //mod_hozzaszolas_filter.js:102
+				colors.push('#ffffcf'); //mod_hozzaszolas_filter.js:103
+				if (document.querySelector('#lepke_hozzaszolas_filter_nem_resztvevok').checked && !hozzaszolas_filter__author_in_list(comment, kihivasgazdak)) //mod_hozzaszolas_filter.js:104
+					show = true; //mod_hozzaszolas_filter.js:105
+			} //mod_hozzaszolas_filter.js:106
+			if (hozzaszolas_filter__mention_in_list(comment, nem_teljesitok_kiv_kihivasgazda)) //mod_hozzaszolas_filter.js:107
+			{ //mod_hozzaszolas_filter.js:108
+				match++; //mod_hozzaszolas_filter.js:109
 				// TODO mark with color
-				if (document.querySelector('#lepke_hozzaszolas_filter_nem_teljesitok_emlitesei').checked) //mod_hozzaszolas_filter.js:102
-					show = true; //mod_hozzaszolas_filter.js:103
-			} //mod_hozzaszolas_filter.js:104
-			if (hozzaszolas_filter__author_in_list(comment, [current_user])) //mod_hozzaszolas_filter.js:105
-			{ //mod_hozzaszolas_filter.js:106
-				match++; //mod_hozzaszolas_filter.js:107
+				if (document.querySelector('#lepke_hozzaszolas_filter_nem_teljesitok_emlitesei').checked) //mod_hozzaszolas_filter.js:111
+					show = true; //mod_hozzaszolas_filter.js:112
+			} //mod_hozzaszolas_filter.js:113
+			if (hozzaszolas_filter__author_in_list(comment, [current_user])) //mod_hozzaszolas_filter.js:114
+			{ //mod_hozzaszolas_filter.js:115
+				match++; //mod_hozzaszolas_filter.js:116
 				// TODO mark with color
-				if (document.querySelector('#lepke_hozzaszolas_filter_sajat').checked) //mod_hozzaszolas_filter.js:109
-					show = true; //mod_hozzaszolas_filter.js:110
-			} //mod_hozzaszolas_filter.js:111
-			if (hozzaszolas_filter__mention_in_list(comment, [current_user])) //mod_hozzaszolas_filter.js:112
-			{ //mod_hozzaszolas_filter.js:113
-				match++; //mod_hozzaszolas_filter.js:114
+				if (document.querySelector('#lepke_hozzaszolas_filter_sajat').checked) //mod_hozzaszolas_filter.js:118
+					show = true; //mod_hozzaszolas_filter.js:119
+			} //mod_hozzaszolas_filter.js:120
+			if (hozzaszolas_filter__mention_in_list(comment, [current_user])) //mod_hozzaszolas_filter.js:121
+			{ //mod_hozzaszolas_filter.js:122
+				match++; //mod_hozzaszolas_filter.js:123
 				// TODO mark with color
-				if (document.querySelector('#lepke_hozzaszolas_filter_sajat_emlitesek').checked) //mod_hozzaszolas_filter.js:116
-					show = true; //mod_hozzaszolas_filter.js:117
-			} //mod_hozzaszolas_filter.js:118
-			if (match==0) //mod_hozzaszolas_filter.js:119
-			{ //mod_hozzaszolas_filter.js:120
+				if (document.querySelector('#lepke_hozzaszolas_filter_sajat_emlitesek').checked) //mod_hozzaszolas_filter.js:125
+					show = true; //mod_hozzaszolas_filter.js:126
+			} //mod_hozzaszolas_filter.js:127
+			if (match==0) //mod_hozzaszolas_filter.js:128
+			{ //mod_hozzaszolas_filter.js:129
 				// TODO mark with color
-				if (document.querySelector('#lepke_hozzaszolas_filter_nem_teljesitok_egyebek').checked) //mod_hozzaszolas_filter.js:122
-					show = true; //mod_hozzaszolas_filter.js:123
-			} //mod_hozzaszolas_filter.js:124
+				if (document.querySelector('#lepke_hozzaszolas_filter_nem_teljesitok_egyebek').checked) //mod_hozzaszolas_filter.js:131
+					show = true; //mod_hozzaszolas_filter.js:132
+			} //mod_hozzaszolas_filter.js:133
 
-			if (colors.length != 0) //mod_hozzaszolas_filter.js:126
-			{ //mod_hozzaszolas_filter.js:127
-				if (colors.length==1) //mod_hozzaszolas_filter.js:128
-					comment.parentNode.style.background = colors[0]; //mod_hozzaszolas_filter.js:129
-				else //mod_hozzaszolas_filter.js:130
-					comment.parentNode.style.background = 'linear-gradient(to right,'+colors.join()+')'; //mod_hozzaszolas_filter.js:131
-			} //mod_hozzaszolas_filter.js:132
-			comment.parentNode.style.display = show ? "block" : "none"; //mod_hozzaszolas_filter.js:133
-		} //mod_hozzaszolas_filter.js:134
-	}); //mod_hozzaszolas_filter.js:135
-} //mod_hozzaszolas_filter.js:136
+			if (colors.length != 0) //mod_hozzaszolas_filter.js:135
+			{ //mod_hozzaszolas_filter.js:136
+				if (colors.length==1) //mod_hozzaszolas_filter.js:137
+					comment.parentNode.style.background = colors[0]; //mod_hozzaszolas_filter.js:138
+				else //mod_hozzaszolas_filter.js:139
+					comment.parentNode.style.background = 'linear-gradient(to right,'+colors.join()+')'; //mod_hozzaszolas_filter.js:140
+			} //mod_hozzaszolas_filter.js:141
+			comment.parentNode.style.display = show ? "block" : "none"; //mod_hozzaszolas_filter.js:142
+		} //mod_hozzaszolas_filter.js:143
 
-function hozzaszolas_filter__check_only(id) //mod_hozzaszolas_filter.js:138
-{ //mod_hozzaszolas_filter.js:139
-	return function() { //mod_hozzaszolas_filter.js:140
-		var checkboxes = document.querySelector('#lepke_hozzaszolas_filter').querySelectorAll('input[type=checkbox'); //mod_hozzaszolas_filter.js:141
-		for (var i=0; i<checkboxes.length; i++) //mod_hozzaszolas_filter.js:142
-			checkboxes[i].checked = (id=='' || checkboxes[i].id == id); //mod_hozzaszolas_filter.js:143
-		hozzaszolas_filter__showhide() //mod_hozzaszolas_filter.js:144
-	}; //mod_hozzaszolas_filter.js:145
-} //mod_hozzaszolas_filter.js:146
+		var gyanus = hozzaszolas_filter__subtract(teljesitok, hozzaszolok); //mod_hozzaszolas_filter.js:145
+		var gyanus_div = document.querySelector('#lepke_hozzaszolas_filter_gyanusak'); //mod_hozzaszolas_filter.js:146
+		assert(gyanus_div,"gyanus_div","mod_hozzaszolas_filter.js",147); //mod_hozzaszolas_filter.js:147
+		if (gyanus.length > 0) //mod_hozzaszolas_filter.js:148
+		{ //mod_hozzaszolas_filter.js:149
+			gyanus_div.innerHTML = '<br/><b>Gyanús felhasználók</b>: '+ gyanus.map(member_ref).join(", ")+'<br/> Ezeknek a felhasználóknak nincs hozzászólása, de teljesítették a kihívást. Ennek akár névváltás is lehet az oka (el kell telnie egy kis időnek, mire minden hozzászólásnál megváltozik a név), de érdemes lehet utánanézni, hogy mi a helyzet.'; //mod_hozzaszolas_filter.js:150
+		} else { //mod_hozzaszolas_filter.js:151
+			gyanus_div.innerHTML = ''; //mod_hozzaszolas_filter.js:152
+		} //mod_hozzaszolas_filter.js:153
+	}); //mod_hozzaszolas_filter.js:154
+} //mod_hozzaszolas_filter.js:155
+
+function hozzaszolas_filter__check_only(id) //mod_hozzaszolas_filter.js:157
+{ //mod_hozzaszolas_filter.js:158
+	return function() { //mod_hozzaszolas_filter.js:159
+		var checkboxes = document.querySelector('#lepke_hozzaszolas_filter').querySelectorAll('input[type=checkbox'); //mod_hozzaszolas_filter.js:160
+		for (var i=0; i<checkboxes.length; i++) //mod_hozzaszolas_filter.js:161
+			checkboxes[i].checked = (id=='' || checkboxes[i].id == id); //mod_hozzaszolas_filter.js:162
+		hozzaszolas_filter__showhide() //mod_hozzaszolas_filter.js:163
+	}; //mod_hozzaszolas_filter.js:164
+} //mod_hozzaszolas_filter.js:165
 
 // TODO: táblázatba rendezni őket, három oszloppal: "hozzászólás típusa", "megjelenítés", "elrejtés".
 // Plusz két új sor: textbox+"hozzászólásai", textbox+"-t említő hozzászólások"
 // Esetleg négy oszlop? ("általa írt", "őt említő") X ("megjelenítés", "elrejtés")
-function hozzaszolas_filter__loaded() //mod_hozzaszolas_filter.js:151
-{ //mod_hozzaszolas_filter.js:152
-	document.querySelector('#lepke_hozzaszolas_filter').innerHTML = '' //mod_hozzaszolas_filter.js:153
-		+ '<div>Az alábbi tagok számítsanak kihívásgazdának a szűréskor (így pl. a korábbi kihívásgazda hozzászólásai eltüntethetők a kimaradt zöldítések közül): <img height="16" width="16" class="information_icon tooltip right" src="https://moly.hu/assets/information-ae7fba0826a1fc1527c3b6803b223cbc88d2afa182c3b1b43f8883c61e9c9b1d.png" title="A felhasználóneveket szóközzel vagy vesszővel elválasztva, @ nélkül add meg a mezőben!"><input type="text" id="lepke_hozzaszolas_filter_extra_kihivasgazdak"/></div>' //mod_hozzaszolas_filter.js:154
-		+ '<div>A következő hozzászólások megjelenítése:</div>' //mod_hozzaszolas_filter.js:155
-		+ '<div style="background:#dfcfef"><input type="checkbox" checked="checked" id="lepke_hozzaszolas_filter_kihivasgazda"/> <a href="#">Kihívásgazda hozzászólásai</a></div>' //mod_hozzaszolas_filter.js:156
-		+ '<div style="background:#dfefcf"><input type="checkbox" checked="checked" id="lepke_hozzaszolas_filter_teljesitok"/> <a href="#">Teljesítők hozzászólásai (kivéve kihívásgazda)</a></div>' //mod_hozzaszolas_filter.js:157
-		+ '<div style="background:#efcfcf"><input type="checkbox" checked="checked" id="lepke_hozzaszolas_filter_nem_teljesitok"/> <a href="#">Nem teljesítők hozzászólásai (kivéve kihívásgazda)</a></div>' //mod_hozzaszolas_filter.js:158
-		+ '<div style="background:#ffffcf"><input type="checkbox" checked="checked" id="lepke_hozzaszolas_filter_nem_resztvevok"/> <a href="#">Részt nem vevők hozzászólásai (kivéve kihívásgazda)</a></div>' //mod_hozzaszolas_filter.js:159
-		+ '<div><input type="checkbox" checked="checked" id="lepke_hozzaszolas_filter_sajat"/> <a href="#">Saját hozzászólásaim</a></div>' //mod_hozzaszolas_filter.js:160
-		+ '<div><input type="checkbox" checked="checked" id="lepke_hozzaszolas_filter_sajat_emlitesek"/> <a href="#">Engem említő hozzaszólások</a></div>' //mod_hozzaszolas_filter.js:161
-		+ '<div><input type="checkbox" checked="checked" id="lepke_hozzaszolas_filter_nem_teljesitok_emlitesei"/> <a href="#">Nem teljesítőket (kivéve kihívásgazdát) említő hozzászólások</a></div>' //mod_hozzaszolas_filter.js:162
-		+ '<div><input type="checkbox" checked="checked" id="lepke_hozzaszolas_filter_egyebek"/> <a href="#">Egyik feltételnek sem megfelelő hozzászólások</a></div>' //mod_hozzaszolas_filter.js:163
-		+ '<div><a href="#">Minden hozzászólás megjelenítése</a></div>' //mod_hozzaszolas_filter.js:164
-		; //mod_hozzaszolas_filter.js:165
+function hozzaszolas_filter__loaded() //mod_hozzaszolas_filter.js:170
+{ //mod_hozzaszolas_filter.js:171
+	document.querySelector('#lepke_hozzaszolas_filter').innerHTML = '' //mod_hozzaszolas_filter.js:172
+		+ '<div>Az alábbi tagok számítsanak kihívásgazdának a szűréskor (így pl. a korábbi kihívásgazda hozzászólásai eltüntethetők a kimaradt zöldítések közül): <img height="16" width="16" class="information_icon tooltip right" src="https://moly.hu/assets/information-ae7fba0826a1fc1527c3b6803b223cbc88d2afa182c3b1b43f8883c61e9c9b1d.png" title="A felhasználóneveket szóközzel vagy vesszővel elválasztva, @ nélkül add meg a mezőben!"><input type="text" id="lepke_hozzaszolas_filter_extra_kihivasgazdak"/></div>' //mod_hozzaszolas_filter.js:173
+		+ '<div>A következő hozzászólások megjelenítése:</div>' //mod_hozzaszolas_filter.js:174
+		+ '<div style="background:#dfcfef"><input type="checkbox" checked="checked" id="lepke_hozzaszolas_filter_kihivasgazda"/> <a href="#">Kihívásgazda hozzászólásai</a></div>' //mod_hozzaszolas_filter.js:175
+		+ '<div style="background:#dfefcf"><input type="checkbox" checked="checked" id="lepke_hozzaszolas_filter_teljesitok"/> <a href="#">Teljesítők hozzászólásai (kivéve kihívásgazda)</a></div>' //mod_hozzaszolas_filter.js:176
+		+ '<div style="background:#efcfcf"><input type="checkbox" checked="checked" id="lepke_hozzaszolas_filter_nem_teljesitok"/> <a href="#">Nem teljesítők hozzászólásai (kivéve kihívásgazda)</a></div>' //mod_hozzaszolas_filter.js:177
+		+ '<div style="background:#ffffcf"><input type="checkbox" checked="checked" id="lepke_hozzaszolas_filter_nem_resztvevok"/> <a href="#">Részt nem vevők hozzászólásai (kivéve kihívásgazda)</a></div>' //mod_hozzaszolas_filter.js:178
+		+ '<div><input type="checkbox" checked="checked" id="lepke_hozzaszolas_filter_sajat"/> <a href="#">Saját hozzászólásaim</a></div>' //mod_hozzaszolas_filter.js:179
+		+ '<div><input type="checkbox" checked="checked" id="lepke_hozzaszolas_filter_sajat_emlitesek"/> <a href="#">Engem említő hozzaszólások</a></div>' //mod_hozzaszolas_filter.js:180
+		+ '<div><input type="checkbox" checked="checked" id="lepke_hozzaszolas_filter_nem_teljesitok_emlitesei"/> <a href="#">Nem teljesítőket (kivéve kihívásgazdát) említő hozzászólások</a></div>' //mod_hozzaszolas_filter.js:181
+		+ '<div><input type="checkbox" checked="checked" id="lepke_hozzaszolas_filter_egyebek"/> <a href="#">Egyik feltételnek sem megfelelő hozzászólások</a></div>' //mod_hozzaszolas_filter.js:182
+		+ '<div><a href="#">Minden hozzászólás megjelenítése</a></div>' //mod_hozzaszolas_filter.js:183
+		+ '<div id="lepke_hozzaszolas_filter_gyanusak"></div>'; //mod_hozzaszolas_filter.js:184
 
-	var divs = document.querySelector('#lepke_hozzaszolas_filter').querySelectorAll('div'); //mod_hozzaszolas_filter.js:167
-	for (var i=0; i<divs.length; i++) //mod_hozzaszolas_filter.js:168
-	{ //mod_hozzaszolas_filter.js:169
-		var text = divs[i].querySelector('input[type=text]'); //mod_hozzaszolas_filter.js:170
-		var checkbox = divs[i].querySelector('input[type=checkbox]'); //mod_hozzaszolas_filter.js:171
-		var link = divs[i].querySelector('a'); //mod_hozzaszolas_filter.js:172
-		if (link!=null) //mod_hozzaszolas_filter.js:173
-		{ //mod_hozzaszolas_filter.js:174
-			if (checkbox) //mod_hozzaszolas_filter.js:175
-			{ //mod_hozzaszolas_filter.js:176
-				checkbox.addEventListener('click', hozzaszolas_filter__showhide, false); //mod_hozzaszolas_filter.js:177
-				link.addEventListener('click', prevent(hozzaszolas_filter__check_only(checkbox.id)), false); //mod_hozzaszolas_filter.js:178
-			} else { //mod_hozzaszolas_filter.js:179
-				link.addEventListener('click', prevent(hozzaszolas_filter__check_only('')), false); //mod_hozzaszolas_filter.js:180
-			} //mod_hozzaszolas_filter.js:181
-		} else { //mod_hozzaszolas_filter.js:182
-			if (text) //mod_hozzaszolas_filter.js:183
-			{ //mod_hozzaszolas_filter.js:184
-				text.addEventListener('input', hozzaszolas_filter__showhide, false); //mod_hozzaszolas_filter.js:185
-			} //mod_hozzaszolas_filter.js:186
-		} //mod_hozzaszolas_filter.js:187
-	} //mod_hozzaszolas_filter.js:188
-	hozzaszolas_filter__showhide(); //mod_hozzaszolas_filter.js:189
-} //mod_hozzaszolas_filter.js:190
+	var divs = document.querySelector('#lepke_hozzaszolas_filter').querySelectorAll('div'); //mod_hozzaszolas_filter.js:186
+	for (var i=0; i<divs.length; i++) //mod_hozzaszolas_filter.js:187
+	{ //mod_hozzaszolas_filter.js:188
+		var text = divs[i].querySelector('input[type=text]'); //mod_hozzaszolas_filter.js:189
+		var checkbox = divs[i].querySelector('input[type=checkbox]'); //mod_hozzaszolas_filter.js:190
+		var link = divs[i].querySelector('a'); //mod_hozzaszolas_filter.js:191
+		if (link!=null) //mod_hozzaszolas_filter.js:192
+		{ //mod_hozzaszolas_filter.js:193
+			if (checkbox) //mod_hozzaszolas_filter.js:194
+			{ //mod_hozzaszolas_filter.js:195
+				checkbox.addEventListener('click', hozzaszolas_filter__showhide, false); //mod_hozzaszolas_filter.js:196
+				link.addEventListener('click', prevent(hozzaszolas_filter__check_only(checkbox.id)), false); //mod_hozzaszolas_filter.js:197
+			} else { //mod_hozzaszolas_filter.js:198
+				link.addEventListener('click', prevent(hozzaszolas_filter__check_only('')), false); //mod_hozzaszolas_filter.js:199
+			} //mod_hozzaszolas_filter.js:200
+		} else { //mod_hozzaszolas_filter.js:201
+			if (text) //mod_hozzaszolas_filter.js:202
+			{ //mod_hozzaszolas_filter.js:203
+				text.addEventListener('input', hozzaszolas_filter__showhide, false); //mod_hozzaszolas_filter.js:204
+			} //mod_hozzaszolas_filter.js:205
+		} //mod_hozzaszolas_filter.js:206
+	} //mod_hozzaszolas_filter.js:207
+	hozzaszolas_filter__showhide(); //mod_hozzaszolas_filter.js:208
+} //mod_hozzaszolas_filter.js:209
 
-function hozzaszolas_filter__click_button() //mod_hozzaszolas_filter.js:192
-{ //mod_hozzaszolas_filter.js:193
-	var loadbutton = document.querySelector(".load_comments"); //mod_hozzaszolas_filter.js:194
-	if (loadbutton != null) //mod_hozzaszolas_filter.js:195
-	{ //mod_hozzaszolas_filter.js:196
-		loadbutton.click(); //mod_hozzaszolas_filter.js:197
-	} else { //mod_hozzaszolas_filter.js:198
-		window.clearInterval(hozzaszolas_filter__id); //mod_hozzaszolas_filter.js:199
-		hozzaszolas_filter__loaded(); //mod_hozzaszolas_filter.js:200
-	} //mod_hozzaszolas_filter.js:201
-} //mod_hozzaszolas_filter.js:202
+function hozzaszolas_filter__click_button() //mod_hozzaszolas_filter.js:211
+{ //mod_hozzaszolas_filter.js:212
+	var loadbutton = document.querySelector(".load_comments"); //mod_hozzaszolas_filter.js:213
+	if (loadbutton != null) //mod_hozzaszolas_filter.js:214
+	{ //mod_hozzaszolas_filter.js:215
+		loadbutton.click(); //mod_hozzaszolas_filter.js:216
+	} else { //mod_hozzaszolas_filter.js:217
+		window.clearInterval(hozzaszolas_filter__id); //mod_hozzaszolas_filter.js:218
+		hozzaszolas_filter__loaded(); //mod_hozzaszolas_filter.js:219
+	} //mod_hozzaszolas_filter.js:220
+} //mod_hozzaszolas_filter.js:221
 
-function hozzaszolas_filter__refresh() { //mod_hozzaszolas_filter.js:204
-	hozzaszolas_filter__open = !hozzaszolas_filter__open; //mod_hozzaszolas_filter.js:205
-	if(!hozzaszolas_filter__open) //mod_hozzaszolas_filter.js:206
-		return; //mod_hozzaszolas_filter.js:207
+function hozzaszolas_filter__refresh() { //mod_hozzaszolas_filter.js:223
+	hozzaszolas_filter__open = !hozzaszolas_filter__open; //mod_hozzaszolas_filter.js:224
+	if(!hozzaszolas_filter__open) //mod_hozzaszolas_filter.js:225
+		return; //mod_hozzaszolas_filter.js:226
 
-	logger__log('hozzaszolas_filter'); //mod_hozzaszolas_filter.js:209
-	document.querySelector('#lepke_hozzaszolas_filter').innerHTML = 'Betöltés...'; //mod_hozzaszolas_filter.js:210
+	logger__log('hozzaszolas_filter'); //mod_hozzaszolas_filter.js:228
+	document.querySelector('#lepke_hozzaszolas_filter').innerHTML = 'Betöltés...'; //mod_hozzaszolas_filter.js:229
 
-	if (hozzaszolas_filter__id!=null) //mod_hozzaszolas_filter.js:212
-		window.clearInterval(hozzaszolas_filter__id); //mod_hozzaszolas_filter.js:213
+	if (hozzaszolas_filter__id!=null) //mod_hozzaszolas_filter.js:231
+		window.clearInterval(hozzaszolas_filter__id); //mod_hozzaszolas_filter.js:232
 
-	hozzaszolas_filter__id = window.setInterval(hozzaszolas_filter__click_button,100); //mod_hozzaszolas_filter.js:215
-} //mod_hozzaszolas_filter.js:216
+	hozzaszolas_filter__id = window.setInterval(hozzaszolas_filter__click_button,100); //mod_hozzaszolas_filter.js:234
+} //mod_hozzaszolas_filter.js:235
 
-function hozzaszolas_filter__setup() { //mod_hozzaszolas_filter.js:218
-	hozzaszolas_filter__open = false; //mod_hozzaszolas_filter.js:219
-	hozzaszolas_filter__id = null; //mod_hozzaszolas_filter.js:220
-	if(new RegExp('^https?://(www)?moly.hu/kihivasok/[^\/]+$').test(document.location.href)) { //mod_hozzaszolas_filter.js:221
-			if (lepke__check_marker('.lepke_marker_hozzaszolas_filter', 'Button already exists')) //mod_hozzaszolas_filter.js:222
-				return; //mod_hozzaszolas_filter.js:223
+function hozzaszolas_filter__setup() { //mod_hozzaszolas_filter.js:237
+	hozzaszolas_filter__open = false; //mod_hozzaszolas_filter.js:238
+	hozzaszolas_filter__id = null; //mod_hozzaszolas_filter.js:239
+	if(new RegExp('^https?://(www)?moly.hu/kihivasok/[^\/]+$').test(document.location.href)) { //mod_hozzaszolas_filter.js:240
+			if (lepke__check_marker('.lepke_marker_hozzaszolas_filter', 'Button already exists')) //mod_hozzaszolas_filter.js:241
+				return; //mod_hozzaszolas_filter.js:242
 
-			var campaign = document.querySelector('#content .item.campaign'); //mod_hozzaszolas_filter.js:225
-			if(lepke__check_real(campaign, 'Not a real campaign')) //mod_hozzaszolas_filter.js:226
-				return; //mod_hozzaszolas_filter.js:227
+			var campaign = document.querySelector('#content'); //mod_hozzaszolas_filter.js:244
+			if(lepke__check_real(campaign, 'Not a real campaign')) //mod_hozzaszolas_filter.js:245
+				return; //mod_hozzaszolas_filter.js:246
 
-			var container = campaign.querySelector('.add_comment_button'); //mod_hozzaszolas_filter.js:229
-			if(lepke__check_real(container, 'No comment button (maybe campaign is not yet verified?) ')) //mod_hozzaszolas_filter.js:230
-				return; //mod_hozzaszolas_filter.js:231
+			var container = campaign.querySelector('.add_comment_button'); //mod_hozzaszolas_filter.js:248
+			if(lepke__check_real(container, 'No comment button (maybe campaign is not yet verified?) ')) //mod_hozzaszolas_filter.js:249
+				return; //mod_hozzaszolas_filter.js:250
 
-			var button = document.createElement('div'); //mod_hozzaszolas_filter.js:233
-			button.setAttribute('class','formbutton lepke_marker lepke_marker_hozzaszolas_filter'); //mod_hozzaszolas_filter.js:234
-			button.innerHTML = '<a href="#">Összes hozzászólás megnyitása</a><div id="lepke_hozzaszolas_filter">Ideiglenes érték</div>'; //mod_hozzaszolas_filter.js:235
-			button.querySelector('a').addEventListener('click', hozzaszolas_filter__refresh, false); //mod_hozzaszolas_filter.js:236
-			container.insertBefore(button, container.lastChild); //mod_hozzaszolas_filter.js:237
+			var button = document.createElement('div'); //mod_hozzaszolas_filter.js:252
+			button.setAttribute('class','formbutton lepke_marker lepke_marker_hozzaszolas_filter'); //mod_hozzaszolas_filter.js:253
+			button.innerHTML = '<a href="#">Összes hozzászólás megnyitása</a><div id="lepke_hozzaszolas_filter">Ideiglenes érték</div>'; //mod_hozzaszolas_filter.js:254
+			button.querySelector('a').addEventListener('click', hozzaszolas_filter__refresh, false); //mod_hozzaszolas_filter.js:255
+			container.insertBefore(button, container.lastChild); //mod_hozzaszolas_filter.js:256
 
-			console.log('> Done'); //mod_hozzaszolas_filter.js:239
-	} else { //mod_hozzaszolas_filter.js:240
-		console.log('> Not a campaign'); //mod_hozzaszolas_filter.js:241
-	} //mod_hozzaszolas_filter.js:242
-} //mod_hozzaszolas_filter.js:243
+			console.log('> Done'); //mod_hozzaszolas_filter.js:258
+	} else { //mod_hozzaszolas_filter.js:259
+		console.log('> Not a campaign'); //mod_hozzaszolas_filter.js:260
+	} //mod_hozzaszolas_filter.js:261
+} //mod_hozzaszolas_filter.js:262
 
-register_module(new function() { //mod_hozzaszolas_filter.js:246
-	this.name = 'hozzaszolas_filter'; //mod_hozzaszolas_filter.js:247
-	this.optional = true; //mod_hozzaszolas_filter.js:248
-	this.enabled = true; //mod_hozzaszolas_filter.js:249
-	this.short_description = '_Összes hozzászólás megnyitása_ gomb hozzáadása kihívásokhoz'; //mod_hozzaszolas_filter.js:250
-	this.long_description = 'A gombra kattintva lenyílik az összes hozzászólás, és a hozzászólások háttere színt vált attól függően, hogy a hozzászólás írója milyen viszonyban van a kihívással (kihívásgazda, teljesítő, nem teljesítő, nem résztvevő). Lehetőség van a hozzászólások szűrésére is különböző szempontok alapján.'; //mod_hozzaszolas_filter.js:251
-	this.setup = hozzaszolas_filter__setup; //mod_hozzaszolas_filter.js:252
-}); //mod_hozzaszolas_filter.js:253
+register_module(new function() { //mod_hozzaszolas_filter.js:265
+	this.name = 'hozzaszolas_filter'; //mod_hozzaszolas_filter.js:266
+	this.optional = true; //mod_hozzaszolas_filter.js:267
+	this.enabled = true; //mod_hozzaszolas_filter.js:268
+	this.short_description = '_Összes hozzászólás megnyitása_ gomb hozzáadása kihívásokhoz'; //mod_hozzaszolas_filter.js:269
+	this.long_description = 'A gombra kattintva lenyílik az összes hozzászólás, és a hozzászólások háttere színt vált attól függően, hogy a hozzászólás írója milyen viszonyban van a kihívással (kihívásgazda, teljesítő, nem teljesítő, nem résztvevő). Lehetőség van a hozzászólások szűrésére is különböző szempontok alapján.'; //mod_hozzaszolas_filter.js:270
+	this.setup = hozzaszolas_filter__setup; //mod_hozzaszolas_filter.js:271
+}); //mod_hozzaszolas_filter.js:272
 //=============================================================================
 // Modul: kethasab
 //=============================================================================
