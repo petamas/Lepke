@@ -9,7 +9,7 @@
 // @include      https://www.moly.hu/*
 // @grant        GM_addStyle
 // @grant        GM_xmlhttpRequest
-// @version      7.15
+// @version      7.16
 // @updateURL    https://github.com/petamas/Lepke/raw/master/Lepke.user.js
 // @downloadURL  https://github.com/petamas/Lepke/raw/master/Lepke.user.js
 // @run-at       document-start
@@ -173,186 +173,176 @@ function lepke__get_user_link_relative() { //moly.js:16
 	return url; //moly.js:21
 } //moly.js:22
 
-function lepke__get_user() { //moly.js:24
-	var menu = document.querySelector('#user_menu'); //moly.js:25
-	if(menu==null) // not logged in, or text mode page //moly.js:26
-		return '';  //moly.js:27
-	var img = menu.querySelector('a > img'); //moly.js:28
-	assert(img != null,"img != null","moly.js",29); //moly.js:29
-	user = img.getAttribute('title') //moly.js:30
-	return user; //moly.js:31
-} //moly.js:32
-
-function lepke__get_menu() { //moly.js:34
-	var mymenu = document.querySelector('#lepke_menu'); //moly.js:35
-	if(mymenu == null) { //moly.js:36
-		var header = document.querySelector('.toprightmenu'); //moly.js:37
-		assert(header != null,"header != null","moly.js",38); //moly.js:38
-		mymenu = document.createElement('li'); //moly.js:39
-		assert(mymenu != null && mymenu != undefined,"mymenu != null && mymenu != undefined","moly.js",40); //moly.js:40
-		mymenu.innerHTML = '<a href="#"><img src="'+lepke__icon+'" class="inline_avatar lepke_marker" height="32"/></a><ul></ul>'; //moly.js:41
-		mymenu.id = 'lepke_menu'; //moly.js:42
-		mymenu.className = 'submenu'; //moly.js:43
-		mymenu.querySelector('a').addEventListener('click',prevent(settings__open)); //moly.js:44
+function lepke__get_menu() { //moly.js:24
+	var mymenu = document.querySelector('#lepke_menu'); //moly.js:25
+	if(mymenu == null) { //moly.js:26
+		var header = document.querySelector('.toprightmenu'); //moly.js:27
+		assert(header != null,"header != null","moly.js",28); //moly.js:28
+		mymenu = document.createElement('li'); //moly.js:29
+		assert(mymenu != null && mymenu != undefined,"mymenu != null && mymenu != undefined","moly.js",30); //moly.js:30
+		mymenu.innerHTML = '<a href="#"><img src="'+lepke__icon+'" class="inline_avatar lepke_marker" height="32"/></a><ul></ul>'; //moly.js:31
+		mymenu.id = 'lepke_menu'; //moly.js:32
+		mymenu.className = 'submenu'; //moly.js:33
+		mymenu.querySelector('a').addEventListener('click',prevent(settings__open)); //moly.js:34
 
 		// var MutationObserver = window.MutationObserver || window.WebKitMutationObserver || window.MozMutationObserver; //moly.js:38
-		var observer = new MutationObserver(function(mutations) { //moly.js:39 //moly.js:47
-				mutations.forEach(function(mutation) { //moly.js:40 //moly.js:48
-					if (mutation.type == 'childList') for (var i = 0; i < mutation.removedNodes.length; ++i) { //moly.js:49
-						if (mutation.removedNodes[i].nodeName.toLowerCase()=='body') //moly.js:50
-						{ //moly.js:51
-							console.log('Lepke unloaded because of dynamic page reload. Restarting script...'); //moly.js:52
-							main(); //moly.js:53
-						} //moly.js:54
-					} //moly.js:55
-				}); //moly.js:56
-			}); //moly.js:57
-		var config = { childList: true, subtree: true }; //moly.js:58
-		observer.observe(document, config); //moly.js:59
+		var observer = new MutationObserver(function(mutations) { //moly.js:39 //moly.js:37
+				mutations.forEach(function(mutation) { //moly.js:40 //moly.js:38
+					if (mutation.type == 'childList') for (var i = 0; i < mutation.removedNodes.length; ++i) { //moly.js:39
+						if (mutation.removedNodes[i].nodeName.toLowerCase()=='body') //moly.js:40
+						{ //moly.js:41
+							console.log('Lepke unloaded because of dynamic page reload. Restarting script...'); //moly.js:42
+							main(); //moly.js:43
+						} //moly.js:44
+					} //moly.js:45
+				}); //moly.js:46
+			}); //moly.js:47
+		var config = { childList: true, subtree: true }; //moly.js:48
+		observer.observe(document, config); //moly.js:49
 
-		header.insertBefore(mymenu, header.firstChild); //moly.js:61
-	} //moly.js:62
-	return mymenu.querySelector('ul'); //moly.js:63
-} //moly.js:64
+		header.insertBefore(mymenu, header.firstChild); //moly.js:51
+	} //moly.js:52
+	return mymenu.querySelector('ul'); //moly.js:53
+} //moly.js:54
 
-function prevent(f) { //moly.js:66
-	return function(e) { //moly.js:67
-		e.preventDefault(); //moly.js:68
-		f(e); //moly.js:69
-	}; //moly.js:70
-} //moly.js:71
+function prevent(f) { //moly.js:56
+	return function(e) { //moly.js:57
+		e.preventDefault(); //moly.js:58
+		f(e); //moly.js:59
+	}; //moly.js:60
+} //moly.js:61
 
-function lepke__createMenuItem(title,link,handler,className) { //moly.js:73
-	var li = document.createElement('li'); //moly.js:74
-	li.innerHTML = '<a href="'+link+'">'+title+'</a>'; //moly.js:75
-	li.firstChild.addEventListener("click",handler,false); //moly.js:76
-	li.className = 'lepke_marker '+className; //moly.js:77
-	return li; //moly.js:78
-} //moly.js:79
+function lepke__createMenuItem(title,link,handler,className) { //moly.js:63
+	var li = document.createElement('li'); //moly.js:64
+	li.innerHTML = '<a href="'+link+'">'+title+'</a>'; //moly.js:65
+	li.firstChild.addEventListener("click",handler,false); //moly.js:66
+	li.className = 'lepke_marker '+className; //moly.js:67
+	return li; //moly.js:68
+} //moly.js:69
 
-function lepke__check_marker(marker, message) { //moly.js:81
-	if (document.querySelector(marker) != null) //moly.js:82
-	{ //moly.js:83
-		console.log('> '+message); //moly.js:84
-		return true; //moly.js:85
-	} //moly.js:86
-	return false; //moly.js:87
-} //moly.js:88
+function lepke__check_marker(marker, message) { //moly.js:71
+	if (document.querySelector(marker) != null) //moly.js:72
+	{ //moly.js:73
+		console.log('> '+message); //moly.js:74
+		return true; //moly.js:75
+	} //moly.js:76
+	return false; //moly.js:77
+} //moly.js:78
 
-function lepke__check_real(obj, message) { //moly.js:90
-	if (obj == null) //moly.js:91
-	{ //moly.js:92
-		console.log('> '+message+': '+document.location.href); //moly.js:93
-		return true; //moly.js:94
-	} //moly.js:95
-	return false; //moly.js:96
-} //moly.js:97
+function lepke__check_real(obj, message) { //moly.js:80
+	if (obj == null) //moly.js:81
+	{ //moly.js:82
+		console.log('> '+message+': '+document.location.href); //moly.js:83
+		return true; //moly.js:84
+	} //moly.js:85
+	return false; //moly.js:86
+} //moly.js:87
 
-function lepke__version() { //moly.js:100
-	if(is_GM()) { //moly.js:101
-		return GM_info.script.version; //moly.js:102
-	} else if(is_chrome()) { //moly.js:103
-		return chrome.runtime.getManifest().version; //moly.js:104
-	} else { //moly.js:105
-		return '??'; //moly.js:106
-	} //moly.js:107
-} //moly.js:108
+function lepke__version() { //moly.js:90
+	if(is_GM()) { //moly.js:91
+		return GM_info.script.version; //moly.js:92
+	} else if(is_chrome()) { //moly.js:93
+		return chrome.runtime.getManifest().version; //moly.js:94
+	} else { //moly.js:95
+		return '??'; //moly.js:96
+	} //moly.js:97
+} //moly.js:98
 
-function lepke__edition() { //moly.js:111
-	if(is_GM()) { //moly.js:112
-		if(is_chrome()) { //moly.js:113
-			return 'TM'; //moly.js:114
-		} else { //moly.js:115
-			return 'GM'; //moly.js:116
-		} //moly.js:117
-	} else if(is_chrome()) { //moly.js:118
-		return 'GC'; //moly.js:119
-	} else { //moly.js:120
-		return '??'; //moly.js:121
-	} //moly.js:122
-} //moly.js:123
+function lepke__edition() { //moly.js:101
+	if(is_GM()) { //moly.js:102
+		if(is_chrome()) { //moly.js:103
+			return 'TM'; //moly.js:104
+		} else { //moly.js:105
+			return 'GM'; //moly.js:106
+		} //moly.js:107
+	} else if(is_chrome()) { //moly.js:108
+		return 'GC'; //moly.js:109
+	} else { //moly.js:110
+		return '??'; //moly.js:111
+	} //moly.js:112
+} //moly.js:113
 
 //=============================================================================
 // Modal dialog
 //=============================================================================
 
-function modal__open(content,close) { //moly.js:129
-	var background = document.createElement('div'); //moly.js:130
-	background.className = 'modal-background'; //moly.js:131
-	document.body.appendChild(background); //moly.js:132
+function modal__open(content,close) { //moly.js:119
+	var background = document.createElement('div'); //moly.js:120
+	background.className = 'modal-background'; //moly.js:121
+	document.body.appendChild(background); //moly.js:122
 
-	var modal = document.createElement('div'); //moly.js:134
-	modal.className = 'modal-window'; //moly.js:135
-	modal.innerHTML = '<div class="modal-content"><div class="modal-close"><a href="#"><img src="/modal/closelabel.png" alt=""></a></div><div class="pjax" id="pjax"></div>	</div>'; //moly.js:136
-	modal.style.top = '55px'; //moly.js:137
+	var modal = document.createElement('div'); //moly.js:124
+	modal.className = 'modal-window'; //moly.js:125
+	modal.innerHTML = '<div class="modal-content"><div class="modal-close"><a href="#"><img src="/modal/closelabel.png" alt=""></a></div><div class="pjax" id="pjax"></div>	</div>'; //moly.js:126
+	modal.style.top = '55px'; //moly.js:127
 
-	modal.querySelector('#pjax').innerHTML = content; //moly.js:139
-	document.body.appendChild(modal); //moly.js:140
-	modal.style.left = (window.innerWidth-modal.offsetWidth)/2 + 'px'; //moly.js:141
+	modal.querySelector('#pjax').innerHTML = content; //moly.js:129
+	document.body.appendChild(modal); //moly.js:130
+	modal.style.left = (window.innerWidth-modal.offsetWidth)/2 + 'px'; //moly.js:131
 
-	var close_button = modal.querySelector('.modal-close').firstChild; //moly.js:143
-	if(close == undefined || close == null) //moly.js:144
-		close = modal__close; //moly.js:145
-	close_button.addEventListener('click', prevent(close)); //moly.js:146
+	var close_button = modal.querySelector('.modal-close').firstChild; //moly.js:133
+	if(close == undefined || close == null) //moly.js:134
+		close = modal__close; //moly.js:135
+	close_button.addEventListener('click', prevent(close)); //moly.js:136
 
-	return modal; //moly.js:148
-} //moly.js:149
+	return modal; //moly.js:138
+} //moly.js:139
 
-function modal__close() { //moly.js:151
-	var x = document.querySelector('.modal-background'); //moly.js:152
-	x.parentNode.removeChild(x); //moly.js:153
-	var y = document.querySelector('.modal-window'); //moly.js:154
-	y.parentNode.removeChild(y); //moly.js:155
+function modal__close() { //moly.js:141
+	var x = document.querySelector('.modal-background'); //moly.js:142
+	x.parentNode.removeChild(x); //moly.js:143
+	var y = document.querySelector('.modal-window'); //moly.js:144
+	y.parentNode.removeChild(y); //moly.js:145
+} //moly.js:146
+
+function member(name,href) { //moly.js:149
+	this.name = name; //moly.js:150
+	this.href = href; //moly.js:151
+} //moly.js:152
+
+function member_ref(x) { //moly.js:154
+	return '@<a href="'+x.href+'">' + x.name + '</a>'; //moly.js:155
 } //moly.js:156
 
-function member(name,href) { //moly.js:159
-	this.name = name; //moly.js:160
-	this.href = href; //moly.js:161
+function member_cmp(a,b) { //moly.js:158
+	var an = a.name.toLowerCase(); //moly.js:159
+	var bn = b.name.toLowerCase(); //moly.js:160
+	return std_compare(an,bn); //moly.js:161
 } //moly.js:162
 
-function member_ref(x) { //moly.js:164
-	return '@<a href="'+x.href+'">' + x.name + '</a>'; //moly.js:165
-} //moly.js:166
+function kihivas_resztvevok(kihivas_url, callback) { //moly.js:164
+	MY_xmlhttpRequest({ //moly.js:165
+		method: "GET", //moly.js:166
+		url: kihivas_url.replace(/#$/,'') + '/teljesitesek', //moly.js:167
+		synchronous: false, //moly.js:168
+		onreadystatechange: function(response) { //moly.js:169
+			if (response.readyState==4 && response.status==200){ //moly.js:170
+				var xmldoc = (new DOMParser).parseFromString(response.responseText,'text/html'); //moly.js:171
+				var tr = xmldoc.querySelectorAll('#content table tr'); //moly.js:172
+				var teljesitok = []; //moly.js:173
+				var nem_teljesitok = []; //moly.js:174
+				for(var i = 1; i<tr.length; i++) { //moly.js:175
+					var link = tr[i].querySelector('a'); //moly.js:176
+					assert(link != null,"link != null","moly.js",177); //moly.js:177
+					var mem = new member(link.innerHTML, link.getAttribute('href')); //moly.js:178
+					var td = tr[i].lastChild; //moly.js:179
+					if(td.querySelector('.completed') != null || td.querySelector('.on') != null) { //moly.js:180
+						teljesitok[teljesitok.length] = mem; //moly.js:181
+					} else { //moly.js:182
+						nem_teljesitok[nem_teljesitok.length] = mem; //moly.js:183
+					} //moly.js:184
+				} //moly.js:185
 
-function member_cmp(a,b) { //moly.js:168
-	var an = a.name.toLowerCase(); //moly.js:169
-	var bn = b.name.toLowerCase(); //moly.js:170
-	return std_compare(an,bn); //moly.js:171
-} //moly.js:172
+				var resztvevok = teljesitok.concat(nem_teljesitok); //moly.js:187
+				resztvevok.sort(member_cmp); //moly.js:188
+				teljesitok.sort(member_cmp); //moly.js:189
+				nem_teljesitok.sort(member_cmp); //moly.js:190
 
-function kihivas_resztvevok(kihivas_url, callback) { //moly.js:174
-	MY_xmlhttpRequest({ //moly.js:175
-		method: "GET", //moly.js:176
-		url: kihivas_url.replace(/#$/,'') + '/teljesitesek', //moly.js:177
-		synchronous: false, //moly.js:178
-		onreadystatechange: function(response) { //moly.js:179
-			if (response.readyState==4 && response.status==200){ //moly.js:180
-				var xmldoc = (new DOMParser).parseFromString(response.responseText,'text/html'); //moly.js:181
-				var tr = xmldoc.querySelectorAll('#content table tr'); //moly.js:182
-				var teljesitok = []; //moly.js:183
-				var nem_teljesitok = []; //moly.js:184
-				for(var i = 1; i<tr.length; i++) { //moly.js:185
-					var link = tr[i].querySelector('a'); //moly.js:186
-					assert(link != null,"link != null","moly.js",187); //moly.js:187
-					var mem = new member(link.innerHTML, link.getAttribute('href')); //moly.js:188
-					var td = tr[i].lastChild; //moly.js:189
-					if(td.querySelector('.completed') != null || td.querySelector('.on') != null) { //moly.js:190
-						teljesitok[teljesitok.length] = mem; //moly.js:191
-					} else { //moly.js:192
-						nem_teljesitok[nem_teljesitok.length] = mem; //moly.js:193
-					} //moly.js:194
-				} //moly.js:195
-
-				var resztvevok = teljesitok.concat(nem_teljesitok); //moly.js:197
-				resztvevok.sort(member_cmp); //moly.js:198
-				teljesitok.sort(member_cmp); //moly.js:199
-				nem_teljesitok.sort(member_cmp); //moly.js:200
-
-				callback(resztvevok, teljesitok, nem_teljesitok); //moly.js:202
-			} //moly.js:203
-		} //moly.js:204
-	}); //moly.js:205
-} //moly.js:206
+				callback(resztvevok, teljesitok, nem_teljesitok); //moly.js:192
+			} //moly.js:193
+		} //moly.js:194
+	}); //moly.js:195
+} //moly.js:196
 //=============================================================================
 // Beállítások
 //=============================================================================
@@ -804,7 +794,7 @@ function hozzaszolas_filter__showhide() //mod_hozzaszolas_filter.js:52
 		for (var i=0; i<kihivasgazdak_names.length; i++) //mod_hozzaszolas_filter.js:61
 			kihivasgazdak.push(new member(kihivasgazdak_names[i].replace(/^@/,''), '')); //mod_hozzaszolas_filter.js:62
 
-		var current_user = new member(lepke__get_user(), lepke__get_user_link_relative()); //mod_hozzaszolas_filter.js:64
+		var current_user = new member('Te magad', lepke__get_user_link_relative()); //mod_hozzaszolas_filter.js:64
 
 		var nem_teljesitok_kiv_kihivasgazda = hozzaszolas_filter__subtract(nem_teljesitok, kihivasgazdak); //mod_hozzaszolas_filter.js:66
 		var hozzaszolok = []; //mod_hozzaszolas_filter.js:67
@@ -1184,7 +1174,7 @@ register_module(new function() { //mod_suti.js:27
 //=============================================================================
 
 function main() { //Lepke.main.js:88
-	if(lepke__get_user()=='') //Lepke.main.js:89
+	if(lepke__get_user_link()=='') //Lepke.main.js:89
 	{ //Lepke.main.js:90
 		console.log('User menu cannot be found, exiting...'); //Lepke.main.js:91
 		return; //Lepke.main.js:92
