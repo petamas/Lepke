@@ -910,7 +910,7 @@ function hozzaszolas_filter__loaded() //mod_hozzaszolas_filter.js:170
 		+ '<div style="background:#efcfcf"><input type="checkbox" checked="checked" id="lepke_hozzaszolas_filter_nem_teljesitok"/> <a href="#">Nem teljesítők hozzászólásai (kivéve kihívásgazda)</a></div>' //mod_hozzaszolas_filter.js:177
 		+ '<div style="background:#ffffcf"><input type="checkbox" checked="checked" id="lepke_hozzaszolas_filter_nem_resztvevok"/> <a href="#">Részt nem vevők hozzászólásai (kivéve kihívásgazda)</a></div>' //mod_hozzaszolas_filter.js:178
 		+ '<div><input type="checkbox" checked="checked" id="lepke_hozzaszolas_filter_sajat"/> <a href="#">Saját hozzászólásaim</a></div>' //mod_hozzaszolas_filter.js:179
-		+ '<div><input type="checkbox" checked="checked" id="lepke_hozzaszolas_filter_sajat_emlitesek"/> <a href="#">Engem említő hozzaszólások</a></div>' //mod_hozzaszolas_filter.js:180
+		// + '<div><input type="checkbox" checked="checked" id="lepke_hozzaszolas_filter_sajat_emlitesek"/> <a href="#">Engem említő hozzaszólások</a></div>'
 		+ '<div><input type="checkbox" checked="checked" id="lepke_hozzaszolas_filter_nem_teljesitok_emlitesei"/> <a href="#">Nem teljesítőket (kivéve kihívásgazdát) említő hozzászólások</a></div>' //mod_hozzaszolas_filter.js:181
 		+ '<div><input type="checkbox" checked="checked" id="lepke_hozzaszolas_filter_egyebek"/> <a href="#">Egyik feltételnek sem megfelelő hozzászólások</a></div>' //mod_hozzaszolas_filter.js:182
 		+ '<div><a href="#">Minden hozzászólás megjelenítése</a></div>' //mod_hozzaszolas_filter.js:183
